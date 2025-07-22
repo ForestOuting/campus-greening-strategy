@@ -1,0 +1,18 @@
+{
+  "name": "school-greening-map",
+  "version": "1.0.0",
+  "description": "学校绿化战略图管理系统",
+  "scripts": {
+    "start": "live-server public --open=index.html",
+    "build": "mkdir -p dist && cp greening-strategy-map.html dist/index.html && echo 'Build complete. Files copied to dist/ directory.'"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "browserslist": [
+    "last 2 versions",
+    "not dead",
+    "not ie <= 11"
+  ]
+}
+    

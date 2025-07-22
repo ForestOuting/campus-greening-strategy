@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>山东大学青岛校区绿化战略图管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#00B42A',
+            warning: '#FF7D00',
+            danger: '#F53F3F',
+            gray: {
+              100: '#F2F3F5',
+              200: '#E5E6EB',
+              300: '#C9CDD4',
+              400: '#86909C',
+              500: '#4E5969',
+              600: '#272E3B',
+              700: '#1D2129',
+            }
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .watering-due {
+        animation: pulse 2s infinite;
+      }
+      .svg-container {
+        aspect-ratio: 16/9;
+      }
+      .drawing-cursor {
+        cursor: crosshair;
+      }
+      .area-path {
+        transition: all 0.3s ease;
+      }
+      .area-path:hover {
+        filter: brightness(1.2);
+        stroke-width: 3;
+      }
+    }
+
+    @keyframes pulse {
+      0% {
+        filter: brightness(1);
+      }
+      50% {
+        filter: brightness(1.5);
+      }
+      100% {
+        filter: brightness(1);
+      }
+    }
+  </style>
+</head>
+<body class="font-inter bg-gray-100 text-gray-700 min-h-screen flex flex-col">
+  <!-- 顶部导航 -->
+  <header class="bg-primary text-white shadow-md">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <i class="fa fa-leaf text-xl"></i>
+        <h1 class="text-xl font-bold">山东大学青岛校区绿化战略图管理系统</h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span id="current-date" class="text-sm"></span>
+        <button id="refresh-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-3 py-1 text-sm flex items-center">
+          <i class="fa fa-refresh mr-1"></i> 刷新状态
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要内容区 -->
+  <main class="flex-grow container mx-auto px-4 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- 左侧：绿化区域地图 -->
+      <div class="lg:col-span-2 bg-white rounded-lg shadow p-4">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold flex items-center">
+            <i class="fa fa-map-o mr-2 text-primary"></i>山东大学青岛校区绿化地图
+            <span id="drawing-status" class="ml-3 text-sm bg-warning/20 text-warning px-2 py-1 rounded hidden">
+              <i class="fa fa-pencil mr-1"></i>绘制模式
+            </span>
+          </h2>
+          <div class="flex space-x-2">
+            <button id="draw-area" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded flex items-center">
+              <i class="fa fa-pencil"></i>
+              <span class="ml-1 hidden sm:inline">绘制新区域</span>
+            </button>
+            <button id="cancel-drawing" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded hidden">
+              <i class="fa fa-times"></i>
+              <span class="ml-1 hidden sm:inline">取消绘制</span>
+            </button>
+            <button id="confirm-drawing" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded hidden">
+              <i class="fa fa-check"></i>
+              <span class="ml-1 hidden sm:inline">确定区域</span>
+            </button>
+            <!-- 已删除三个按钮：放大、缩小、重置视图 -->
+          </div>
+        </div>
+        
+        <div class="svg-container bg-gray-50 rounded overflow-hidden border border-gray-200">
+          <!-- 学校地图SVG -->
+          <svg id="school-map" viewBox="0 0 1000 600" class="w-full h-full">
+            <!-- 学校背景图 -->
+            <image id="school-bg" xlink:href="assets/SchoolMap.png" width="1000" height="600" preserveAspectRatio="xMidYMid slice" />
+            
+            <!-- 临时绘制路径 -->
+            <path id="temp-path" d="" fill="rgba(139, 195, 74, 0.3)" stroke="#4CAF50" stroke-width="2" stroke-dasharray="5,5" class="hidden" />
+            
+            <!-- 图例 -->
+            <g transform="translate(20, 480)">
+              <rect x="0" y="0" width="120" height="100" fill="white" stroke="#999" rx="5" />
+              <text x="60" y="20" text-anchor="middle" font-weight="bold">图例</text>
+              
+              <circle cx="15" cy="45" r="8" fill="#8BC34A" />
+              <text x="35" y="49" font-size="12">正常</text>
+              
+              <circle cx="15" cy="65" r="8" fill="#FF7D00" />
+              <text x="35" y="69" font-size="12">需要浇水</text>
+              
+              <circle cx="15" cy="85" r="8" fill="#F53F3F" />
+              <text x="35" y="89" font-size="12">已逾期</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+      
+      <!-- 右侧：绿化管理面板 -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="text-lg font-semibold mb-4 flex items-center">
+          <i class="fa fa-tasks mr-2 text-primary"></i>绿化管理
+        </h2>
+        
+        <!-- 绿化区域选择器 -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-600 mb-1">选择绿化区域</label>
+          <div id="area-buttons" class="grid grid-cols-3 gap-2">
+          </div>
+        </div>
+        
+        <!-- 当前选中区域信息 -->
+        <div id="area-details" class="bg-gray-50 rounded p-3 border border-gray-200 mb-4">
+          <h3 class="text-base font-medium mb-2" id="area-name">未选择区域</h3>
+          
+          <div class="space-y-2">
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-500">上次浇水:</span>
+              <span class="text-sm font-medium" id="last-watered">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-500">浇水频率:</span>
+              <span class="text-sm font-medium">
+                <select id="watering-frequency" class="bg-white border border-gray-300 rounded px-2 py-1 text-sm">
+                  <option value="0">每月 0 次</option>
+                  <option value="1">每月 1 次</option>
+                  <option value="2">每月 2 次</option>
+                  <option value="3">每月 3 次</option>
+                  <option value="4">每月 4 次</option>
+                </select>
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-500">下次浇水:</span>
+              <span class="text-sm font-medium" id="next-watering">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-500">状态:</span>
+              <span class="text-sm font-medium" id="area-status">-</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="flex space-x-3">
+          <button id="record-watering" class="flex-1 bg-primary hover:bg-primary/90 transition-colors text-white py-2 px-4 rounded flex items-center justify-center">
+            <i class="fa fa-check-circle mr-1"></i> 记录浇水
+          </button>
+          <button id="delete-area" class="bg-danger hover:bg-danger/90 transition-colors text-white py-2 px-4 rounded flex items-center justify-center">
+            <i class="fa fa-trash mr-1"></i> 删除区域
+          </button>
+        </div>
+        
+        <!-- 近期浇水记录 -->
+        <div class="mt-6">
+          <h3 class="text-base font-medium mb-2 flex items-center">
+            <i class="fa fa-history mr-2 text-primary"></i>浇水记录
+          </h3>
+          <div id="watering-records" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+            <div class="text-center py-4 text-gray-500 text-sm">暂无浇水记录</div>
+          </div>
+          
+          <!-- 浇水记录分页控件 -->
+          <div id="watering-pagination" class="flex justify-between items-center mt-2 hidden">
+            <div id="watering-page-info" class="text-sm text-gray-600">第 <span id="watering-current-page">1</span> 页，共 <span id="watering-total-pages">1</span> 页</div>
+            <div class="flex space-x-2">
+              <button id="watering-prev-page" class="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded disabled:opacity-50 text-xs" disabled>
+                <i class="fa fa-chevron-left"></i>
+              </button>
+              <button id="watering-next-page" class="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded disabled:opacity-50 text-xs" disabled>
+                <i class="fa fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 绿化任务日历 -->
+    <div class="mt-6 bg-white rounded-lg shadow p-4">
+      <h2 class="text-lg font-semibold mb-4 flex items-center">
+        <i class="fa fa-calendar mr-2 text-primary"></i>绿化任务日历
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日期</th>
+              <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">区域</th>
+              <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">任务</th>
+              <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+              <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">负责人</th>
+            </tr>
+          </thead>
+          <tbody id="calendar-body" class="bg-white divide-y divide-gray-200">
+            <tr>
+              <td colspan="5" class="px-3 py-4 text-center text-sm text-gray-500">暂无绿化任务</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- 分页控件 -->
+      <div id="pagination-controls" class="flex justify-between items-center mt-4">
+        <div id="page-info" class="text-sm text-gray-600">第 <span id="current-page">1</span> 页，共 <span id="total-pages">1</span> 页</div>
+        <div class="flex space-x-2">
+          <button id="prev-page" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50" disabled>
+            <i class="fa fa-chevron-left"></i>
+          </button>
+          <button id="next-page" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50" disabled>
+            <i class="fa fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-gray-700 text-white py-4 mt-6">
+    <div class="container mx-auto px-4 text-center text-sm">
+      <p>© 2025 山东大学青岛校区绿化管理系统 | 设计与开发</p>
+    </div>
+  </footer>
+
+  <!-- 模态框 - 记录浇水 -->
+  <div id="watering-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 transform transition-all">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">记录浇水</h3>
+        <button id="close-modal" class="text-gray-400 hover:text-gray-500">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="watering-form">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">区域</label>
+          <input type="text" id="modal-area" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50" readonly>
+        </div>
+        
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">日期</label>
+          <input type="text" id="modal-date" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50" readonly>
+        </div>
+        
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">负责人</label>
+          <input type="text" id="modal-person" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="输入负责人姓名">
+        </div>
+        
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+          <textarea id="modal-notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="输入备注信息"></textarea>
+        </div>
+        
+        <div class="flex space-x-3">
+          <button type="button" id="cancel-watering" class="flex-1 bg-gray-200 hover:bg-gray-300 transition-colors text-gray-700 py-2 px-4 rounded">取消</button>
+          <button type="submit" class="flex-1 bg-primary hover:bg-primary/90 transition-colors text-white py-2 px-4 rounded">保存记录</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 模态框 - 删除确认 -->
+  <div id="delete-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 transform transition-all">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">删除区域</h3>
+        <button id="close-delete-modal" class="text-gray-400 hover:text-gray-500">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <p class="text-gray-700 mb-2">确定要删除区域 <span id="delete-area-name" class="font-semibold"></span> 吗？</p>
+        <p class="text-gray-700 mb-4">此操作无法撤销，所有相关数据将被永久删除。</p>
+        <label class="block text-sm font-medium text-gray-700 mb-1">请输入删除密码</label>
+        <input type="password" id="delete-password" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="输入密码">
+        <p id="password-error" class="text-red-500 text-sm mt-1 hidden">密码错误，请重新输入</p>
+      </div>
+      
+      <div class="flex space-x-3">
+        <button type="button" id="cancel-delete" class="flex-1 bg-gray-200 hover:bg-gray-300 transition-colors text-gray-700 py-2 px-4 rounded">取消</button>
+        <button type="button" id="confirm-delete" class="flex-1 bg-danger hover:bg-danger/90 transition-colors text-white py-2 px-4 rounded">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态框 - 绘制区域密码 -->
+  <div id="drawing-password-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 transform transition-all">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">绘制新区域</h3>
+        <button id="close-drawing-modal" class="text-gray-400 hover:text-gray-500">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <p class="text-gray-700 mb-4">请输入密码以开始绘制新区域</p>
+        <label class="block text-sm font-medium text-gray-700 mb-1">绘制密码</label>
+        <input type="password" id="drawing-password" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="输入密码">
+        <p id="drawing-password-error" class="text-red-500 text-sm mt-1 hidden">密码错误，请重新输入</p>
+      </div>
+      
+      <div class="flex space-x-3">
+        <button type="button" id="cancel-drawing-modal" class="flex-1 bg-gray-200 hover:bg-gray-300 transition-colors text-gray-700 py-2 px-4 rounded">取消</button>
+        <button type="button" id="confirm-drawing-modal" class="flex-1 bg-primary hover:bg-primary/90 transition-colors text-white py-2 px-4 rounded">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 绿化区域数据（初始为空）
+    let greenAreas = {};
+    // 当前选中的区域
+    let selectedArea = null;
+    // 绘制状态
+    let isDrawing = false;
+    let drawingPoints = [];
+    // 自定义区域计数器（从a开始）
+    let nextAreaLetter = 'a';
+
+    // 分页相关变量
+    let currentPage = 1;
+    const tasksPerPage = 5;
+    let allTasks = [];
+    
+    // 浇水记录分页变量
+    let wateringCurrentPage = 1;
+    const wateringPerPage = 5;
+
+    // DOM 元素
+    const areaBtnsContainer = document.getElementById("area-buttons");
+    const areaDetails = document.getElementById("area-details");
+    const areaNameEl = document.getElementById("area-name");
+    const areaSizeEl = document.getElementById("area-size");
+    const lastWateredEl = document.getElementById("last-watered");
+    const nextWateringEl = document.getElementById("next-watering");
+    const areaStatusEl = document.getElementById("area-status");
+    const wateringFrequencyEl = document.getElementById("watering-frequency");
+    const recordWateringBtn = document.getElementById("record-watering");
+    const wateringModal = document.getElementById("watering-modal");
+    const closeModalBtn = document.getElementById("close-modal");
+    const cancelWateringBtn = document.getElementById("cancel-watering");
+    const wateringForm = document.getElementById("watering-form");
+    const modalAreaEl = document.getElementById("modal-area");
+    const modalDateEl = document.getElementById("modal-date");
+    const modalPersonEl = document.getElementById("modal-person");
+    const modalNotesEl = document.getElementById("modal-notes");
+    const currentDateEl = document.getElementById("current-date");
+    const refreshBtn = document.getElementById("refresh-btn");
+    const schoolMap = document.getElementById("school-map");
+    const drawAreaBtn = document.getElementById("draw-area");
+    const cancelDrawingBtn = document.getElementById("cancel-drawing");
+    const confirmDrawingBtn = document.getElementById("confirm-drawing");
+    const drawingStatus = document.getElementById("drawing-status");
+    const tempPath = document.getElementById("temp-path");
+    const deleteAreaBtn = document.getElementById("delete-area");
+    const wateringRecords = document.getElementById("watering-records");
+    const calendarBody = document.getElementById("calendar-body");
+    const prevPageBtn = document.getElementById("prev-page");
+    const nextPageBtn = document.getElementById("next-page");
+    const currentPageEl = document.getElementById("current-page");
+    const totalPagesEl = document.getElementById("total-pages");
+    
+    // 删除模态框元素
+    const deleteModal = document.getElementById("delete-modal");
+    const closeDeleteModalBtn = document.getElementById("close-delete-modal");
+    const cancelDeleteBtn = document.getElementById("cancel-delete");
+    const confirmDeleteBtn = document.getElementById("confirm-delete");
+    const deleteAreaNameEl = document.getElementById("delete-area-name");
+    const deletePasswordEl = document.getElementById("delete-password");
+    const passwordErrorEl = document.getElementById("password-error");
+    
+    // 绘制密码模态框元素
+    const drawingPasswordModal = document.getElementById("drawing-password-modal");
+    const closeDrawingModalBtn = document.getElementById("close-drawing-modal");
+    const cancelDrawingModalBtn = document.getElementById("cancel-drawing-modal");
+    const confirmDrawingModalBtn = document.getElementById("confirm-drawing-modal");
+    const drawingPasswordEl = document.getElementById("drawing-password");
+    const drawingPasswordErrorEl = document.getElementById("drawing-password-error");
+    
+    // 浇水记录分页元素
+    const wateringPagination = document.getElementById("watering-pagination");
+    const wateringPrevPageBtn = document.getElementById("watering-prev-page");
+    const wateringNextPageBtn = document.getElementById("watering-next-page");
+    const wateringCurrentPageEl = document.getElementById("watering-current-page");
+    const wateringTotalPagesEl = document.getElementById("watering-total-pages");
+
+    // 初始化
+    document.addEventListener("DOMContentLoaded", function() {
+      // 设置当前日期
+      const now = new Date();
+      const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+      currentDateEl.textContent = now.toLocaleDateString('zh-CN', options);
+      
+      // 初始化三个绿化区域
+      initializeDefaultAreas();
+      
+      // 初始化地图状态
+      updateAreaButtons();
+      updateCalendar();
+      
+      // 添加分页事件监听
+      prevPageBtn.addEventListener('click', goToPrevPage);
+      nextPageBtn.addEventListener('click', goToNextPage);
+      
+      // 浇水记录分页事件监听
+      wateringPrevPageBtn.addEventListener('click', goToWateringPrevPage);
+      wateringNextPageBtn.addEventListener('click', goToWateringNextPage);
+      
+      // 删除模态框事件监听
+      closeDeleteModalBtn.addEventListener('click', () => deleteModal.classList.add('hidden'));
+      cancelDeleteBtn.addEventListener('click', () => deleteModal.classList.add('hidden'));
+      confirmDeleteBtn.addEventListener('click', performDeleteArea);
+      
+      // 绘制密码模态框事件监听
+      closeDrawingModalBtn.addEventListener('click', () => drawingPasswordModal.classList.add('hidden'));
+      cancelDrawingModalBtn.addEventListener('click', () => drawingPasswordModal.classList.add('hidden'));
+      confirmDrawingModalBtn.addEventListener('click', verifyDrawingPassword);
+    });
+
+    // 初始化三个绿化区域
+    function initializeDefaultAreas() {
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      const lastWeek = new Date(now);
+      lastWeek.setDate(now.getDate() - 8);
+      
+      // 区域A - 正常状态
+      greenAreas['区域A - 图书馆草坪'] = {
+        lastWatered: now.toISOString().split('T')[0],
+        wateringFrequency: "2", // 每月2次
+        status: "正常",
+        color: "#8BC34A",
+        path: "M200,150 L300,150 L300,250 L200,250 Z",
+        records: [
+          { date: now.toISOString().split('T')[0] + " 09:30", person: "张明", notes: "正常浇水" },
+          { date: yesterday.toISOString().split('T')[0] + " 10:45", person: "李强", notes: "常规维护" }
+        ]
+      };
+      
+      // 区域B - 需要浇水状态
+      greenAreas['区域B - 教学楼前花坛'] = {
+        lastWatered: yesterday.toISOString().split('T')[0],
+        wateringFrequency: "4", // 每月4次
+        status: "需要浇水",
+        color: "#FF7D00",
+        path: "M400,200 L500,200 L500,300 L400,300 Z",
+        records: [
+          { date: yesterday.toISOString().split('T')[0] + " 14:20", person: "王芳", notes: "部分区域需要更多水" }
+        ]
+      };
+      
+      // 区域C - 已逾期状态
+      greenAreas['区域C - 学生宿舍绿化带'] = {
+        lastWatered: lastWeek.toISOString().split('T')[0],
+        wateringFrequency: "3", // 每月3次
+        status: "已逾期",
+        color: "#F53F3F",
+        path: "M600,250 L700,250 L700,350 L600,350 Z",
+        records: [
+          { date: lastWeek.toISOString().split('T')[0] + " 16:15", person: "赵伟", notes: "全面浇水" }
+        ]
+      };
+      
+      // 绘制初始区域
+      Object.entries(greenAreas).forEach(([areaName, areaData]) => {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", areaData.path);
+        path.setAttribute("fill", "rgba(139, 195, 74, 0.4)");
+        path.setAttribute("stroke", "#4CAF50");
+        path.setAttribute("stroke-width", "2");
+        path.setAttribute("class", "area-path");
+        path.setAttribute("id", `area-${areaName}`);
+        path.addEventListener('click', () => selectArea(areaName));
+        schoolMap.insertBefore(path, tempPath);
+        
+        // 根据状态设置不同颜色
+        if (areaData.status === "需要浇水") {
+          path.setAttribute("fill", "rgba(255, 125, 0, 0.4)");
+          path.setAttribute("stroke", "#FF7D00");
+        } else if (areaData.status === "已逾期") {
+          path.setAttribute("fill", "rgba(245, 63, 63, 0.4)");
+          path.setAttribute("stroke", "#F53F3F");
+        }
+      });
+      
+      // 默认选择第一个区域
+      selectArea(Object.keys(greenAreas)[0]);
+    }
+
+    // 更新区域按钮
+    function updateAreaButtons() {
+      areaBtnsContainer.innerHTML = '';
+      const areas = Object.keys(greenAreas).sort();
+      
+      if (areas.length === 0) {
+        areaBtnsContainer.innerHTML = '<div class="col-span-3 text-center py-4 text-gray-500 text-sm">暂无绿化区域，请点击"绘制新区域"开始</div>';
+        return;
+      }
+      
+      areas.forEach(area => {
+        const btn = document.createElement('button');
+        btn.classList.add('area-btn', 'flex-1', 'py-2', 'px-3', 'rounded');
+        if (area === selectedArea) {
+          btn.classList.add('bg-primary', 'text-white');
+        } else {
+          btn.classList.add('bg-gray-200', 'hover:bg-gray-300', 'transition-colors');
+        }
+        btn.dataset.area = area;
+        btn.textContent = area;
+        btn.addEventListener('click', () => selectArea(area));
+        areaBtnsContainer.appendChild(btn);
+      });
+    }
+
+    // 选择区域
+    function selectArea(area) {
+      selectedArea = area;
+      updateAreaButtons();
+      updateAreaDetails();
+      highlightArea(area);
+    }
+
+    // 高亮显示选中的区域
+    function highlightArea(area) {
+      // 移除所有区域的高亮状态
+      document.querySelectorAll('.area-path').forEach(path => {
+        path.classList.remove('selected-area');
+        path.style.stroke = '#4CAF50';
+      });
+      
+      // 高亮选中的区域
+      const selectedPath = document.getElementById(`area-${area}`);
+      if (selectedPath) {
+        selectedPath.classList.add('selected-area');
+        selectedPath.style.stroke = '#165DFF';
+      }
+    }
+
+    // 更新区域详情
+    function updateAreaDetails() {
+      if (!selectedArea) {
+        areaNameEl.textContent = "未选择区域";
+        lastWateredEl.textContent = "-";
+        nextWateringEl.textContent = "-";
+        areaStatusEl.textContent = "-";
+        areaStatusEl.className = "text-sm font-medium";
+        wateringRecords.innerHTML = '<div class="text-center py-4 text-gray-500 text-sm">暂无浇水记录</div>';
+        wateringPagination.classList.add('hidden');
+        return;
+      }
+      
+      const areaData = greenAreas[selectedArea];
+      areaNameEl.textContent = `${selectedArea} 详情`;
+      lastWateredEl.textContent = areaData.lastWatered;
+      wateringFrequencyEl.value = areaData.wateringFrequency;
+      
+      // 计算下次浇水日期
+      const lastWateredDate = new Date(areaData.lastWatered);
+      const now = new Date();
+      
+      // 根据浇水频率计算下次浇水日期
+      let nextWateringDate = new Date(lastWateredDate);
+      
+      if (parseInt(areaData.wateringFrequency) > 0) {
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const interval = Math.round(daysInMonth / parseInt(areaData.wateringFrequency));
+        nextWateringDate = new Date(lastWateredDate.getTime() + interval * 24 * 60 * 60 * 1000);
+      } else {
+        // 如果浇水频率为0，则没有下次浇水日期
+        nextWateringDate = null;
+      }
+      
+      // 更新状态显示
+      areaStatusEl.className = "text-sm font-medium";
+      
+      // —— 函数外，或者顶部，声明一次：
+const statusColors = {
+  '正常':    { fill: 'rgba(139,195,74,0.4)', stroke: '#4CAF50' },
+  '需要浇水': { fill: 'rgba(255,125,0,0.4)', stroke: '#FF7D00' },
+  '已逾期':   { fill: 'rgba(245,63,63,0.4)', stroke: '#F53F3F' },
+};
+
+// —— 然后在 updateAreaDetails() 里，替换掉上面那 entire if-else：
+let statusText;
+
+// 1) 先算文字 + 下次浇水显示：
+if (parseInt(areaData.wateringFrequency) === 0) {
+  nextWateringEl.textContent = '无需浇水';
+  statusText = '正常';
+} else if (nextWateringDate < now) {
+  nextWateringEl.textContent = `${nextWateringDate.toISOString().split('T')[0]} (逾期)`;
+  statusText = '已逾期';
+} else if (nextWateringDate.toDateString() === now.toDateString()) {
+  nextWateringEl.textContent = `${nextWateringDate.toISOString().split('T')[0]} (今天)`;
+  statusText = '需要浇水';
+} else {
+  nextWateringEl.textContent = nextWateringDate.toISOString().split('T')[0];
+  statusText = '正常';
+}
+
+// 2) 更新“状态”文本 & 样式
+areaStatusEl.textContent = statusText;
+areaStatusEl.className = 'text-sm font-medium'; 
+areaStatusEl.classList.add(
+  statusText === '正常'    ? 'text-secondary' :
+  statusText === '需要浇水'? 'text-warning'   :
+                             'text-danger'
+);
+
+// 3) 更新地图上对应区域的颜色
+const pathEl = document.getElementById(`area-${selectedArea}`);
+if (pathEl) {
+  pathEl.setAttribute('fill',   statusColors[statusText].fill);
+  pathEl.setAttribute('stroke', statusColors[statusText].stroke);
+
+  // 可选：给“需要浇水”“已逾期”加点动画
+  if (statusText !== '正常') pathEl.classList.add('pulse');
+  else                        pathEl.classList.remove('pulse');
+}
+      
+      // 更新浇水记录
+      updateWateringRecords();
+      
+      // 更新浇水频率选择
+      wateringFrequencyEl.value = areaData.wateringFrequency;
+      
+      // 添加浇水频率变更监听
+      wateringFrequencyEl.onchange = function() {
+        if (selectedArea) {
+          greenAreas[selectedArea].wateringFrequency = this.value;
+          updateAreaDetails();
+          updateCalendar();
+        }
+      };
+    }
+    
+    // 更新浇水记录（带分页）
+    function updateWateringRecords() {
+      if (!selectedArea) return;
+      
+      const areaData = greenAreas[selectedArea];
+      const records = areaData.records || [];
+      
+      // 计算总页数
+      const totalPages = Math.max(1, Math.ceil(records.length / wateringPerPage));
+      
+      // 更新分页信息
+      wateringCurrentPage = Math.min(wateringCurrentPage, totalPages);
+      wateringCurrentPageEl.textContent = wateringCurrentPage;
+      wateringTotalPagesEl.textContent = totalPages;
+      
+      // 更新分页按钮状态
+      wateringPrevPageBtn.disabled = wateringCurrentPage === 1;
+      wateringNextPageBtn.disabled = wateringCurrentPage === totalPages;
+      
+      // 获取当前页的记录
+      const startIndex = (wateringCurrentPage - 1) * wateringPerPage;
+      const endIndex = startIndex + wateringPerPage;
+      const currentRecords = records.slice(startIndex, endIndex);
+      
+      // 清空浇水记录容器
+      wateringRecords.innerHTML = '';
+      
+      if (currentRecords.length === 0) {
+        wateringRecords.innerHTML = '<div class="text-center py-4 text-gray-500 text-sm">暂无浇水记录</div>';
+        wateringPagination.classList.add('hidden');
+      } else {
+        currentRecords.forEach(record => {
+          const recordEl = document.createElement('div');
+          recordEl.classList.add('bg-gray-50', 'rounded', 'p-2', 'border', 'border-gray-200');
+          recordEl.innerHTML = `
+            <div class="flex justify-between text-sm">
+              <span class="font-medium">${record.date}</span>
+              <span class="text-gray-500">${record.person || '管理员'}</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">${record.notes}</p>
+          `;
+          wateringRecords.appendChild(recordEl);
+        });
+        
+        // 显示分页控件
+        wateringPagination.classList.remove('hidden');
+      }
+    }
+    
+    // 浇水记录上一页
+    function goToWateringPrevPage() {
+      if (wateringCurrentPage > 1) {
+        wateringCurrentPage--;
+        updateWateringRecords();
+      }
+    }
+    
+    // 浇水记录下一页
+    function goToWateringNextPage() {
+      const areaData = greenAreas[selectedArea];
+      const records = areaData.records || [];
+      const totalPages = Math.max(1, Math.ceil(records.length / wateringPerPage));
+      
+      if (wateringCurrentPage < totalPages) {
+        wateringCurrentPage++;
+        updateWateringRecords();
+      }
+    }
+
+    // 开始绘制
+    drawAreaBtn.addEventListener('click', () => {
+      // 显示绘制密码模态框
+      drawingPasswordModal.classList.remove('hidden');
+      drawingPasswordEl.value = '';
+      drawingPasswordErrorEl.classList.add('hidden');
+    });
+
+    // 验证绘制密码
+    function verifyDrawingPassword() {
+      const password = drawingPasswordEl.value;
+      
+      if (password !== '654321') {
+        drawingPasswordErrorEl.classList.remove('hidden');
+        return;
+      }
+      
+      // 密码正确，进入绘制模式
+      isDrawing = true;
+      drawingPoints = [];
+      drawAreaBtn.classList.add('hidden');
+      cancelDrawingBtn.classList.remove('hidden');
+      confirmDrawingBtn.classList.remove('hidden');
+      drawingStatus.classList.remove('hidden');
+      schoolMap.classList.add('drawing-cursor');
+      
+      // 关闭模态框
+      drawingPasswordModal.classList.add('hidden');
+    }
+
+    // 取消绘制
+    cancelDrawingBtn.addEventListener('click', () => {
+      isDrawing = false;
+      drawingPoints = [];
+      tempPath.setAttribute('d', '');
+      tempPath.classList.add('hidden');
+      drawAreaBtn.classList.remove('hidden');
+      cancelDrawingBtn.classList.add('hidden');
+      confirmDrawingBtn.classList.add('hidden');
+      drawingStatus.classList.add('hidden');
+      schoolMap.classList.remove('drawing-cursor');
+    });
+
+    // 确认绘制
+    confirmDrawingBtn.addEventListener('click', () => {
+      if (drawingPoints.length < 3) {
+        alert('至少需要三个点来绘制区域');
+        return;
+      }
+      
+      // 生成闭合路径
+      const path = `M${drawingPoints.map(point => `${point.x},${point.y}`).join(' L')} Z`;
+      
+      // 提示用户输入区域名称
+      let areaName = prompt('请输入区域名称（例如：图书馆前草坪）', `区域${nextAreaLetter.toUpperCase()}`);
+      
+      // 如果用户取消输入或输入空值，使用默认名称
+      if (areaName === null || areaName.trim() === '') {
+        areaName = `区域${nextAreaLetter.toUpperCase()}`;
+      }
+      
+      // 检查区域名称是否已存在
+      if (greenAreas.hasOwnProperty(areaName)) {
+        alert(`区域名称 "${areaName}" 已存在，请使用其他名称`);
+        return;
+      }
+      
+      // 创建新区域
+      greenAreas[areaName] = {
+        lastWatered: new Date().toISOString().split('T')[0],
+        wateringFrequency: "1", // 默认每月1次
+        status: "正常",
+        color: "#8BC34A",
+        path: path,
+        records: []
+      };
+      
+      // 在SVG中添加新区域
+      const newPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      newPath.setAttribute("d", path);
+      newPath.setAttribute("fill", "rgba(139, 195, 74, 0.4)");
+      newPath.setAttribute("stroke", "#4CAF50");
+      newPath.setAttribute("stroke-width", "2");
+      newPath.setAttribute("class", "area-path");
+      newPath.setAttribute("id", `area-${areaName}`);
+      newPath.addEventListener('click', () => selectArea(areaName));
+      schoolMap.insertBefore(newPath, tempPath);
+      
+      // 更新区域字母
+      nextAreaLetter = String.fromCharCode(nextAreaLetter.charCodeAt(0) + 1);
+      
+      // 更新UI
+      updateAreaButtons();
+      selectArea(areaName);
+      cancelDrawingBtn.click();
+      updateCalendar();
+    });
+
+    // 处理鼠标点击事件（改进坐标定位）
+    schoolMap.addEventListener('click', (e) => {
+      if (!isDrawing) return;
+      
+      // 使用SVG的坐标转换解决偏移问题
+      const point = schoolMap.createSVGPoint();
+      point.x = e.clientX;
+      point.y = e.clientY;
+      const svgPoint = point.matrixTransform(schoolMap.getScreenCTM().inverse());
+      
+      drawingPoints.push({ x: svgPoint.x, y: svgPoint.y });
+      
+      // 更新临时路径
+      const path = `M${drawingPoints.map(point => `${point.x},${point.y}`).join(' L')}`;
+      tempPath.setAttribute('d', path);
+      tempPath.classList.remove('hidden');
+    });
+
+    // 删除区域
+    deleteAreaBtn.addEventListener('click', () => {
+      if (!selectedArea) {
+        alert('请先选择一个区域');
+        return;
+      }
+      
+      // 显示删除确认模态框
+      deleteAreaNameEl.textContent = selectedArea;
+      deletePasswordEl.value = '';
+      passwordErrorEl.classList.add('hidden');
+      deleteModal.classList.remove('hidden');
+    });
+
+    // 执行删除操作
+    function performDeleteArea() {
+      const password = deletePasswordEl.value;
+      
+      // 验证密码
+      if (password !== '123456') {
+        passwordErrorEl.classList.remove('hidden');
+        return;
+      }
+      
+      // 从SVG中删除
+      const pathToRemove = document.getElementById(`area-${selectedArea}`);
+      if (pathToRemove) {
+        pathToRemove.remove();
+      }
+      
+      // 从数据中删除
+      delete greenAreas[selectedArea];
+      
+      // 更新UI
+      selectedArea = Object.keys(greenAreas).length > 0 ? Object.keys(greenAreas)[0] : null;
+      updateAreaButtons();
+      updateAreaDetails();
+      updateCalendar();
+      
+      // 关闭模态框
+      deleteModal.classList.add('hidden');
+    }
+
+    // 记录浇水
+    recordWateringBtn.addEventListener('click', () => {
+      if (!selectedArea) {
+        alert('请先选择一个区域');
+        return;
+      }
+      
+      wateringModal.classList.remove('hidden');
+      modalAreaEl.value = selectedArea;
+      
+      // 设置当前日期和时间（精确到分钟）
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      modalDateEl.value = `${year}-${month}-${day} ${hours}:${minutes}`;
+      
+      modalPersonEl.value = '';
+      modalNotesEl.value = '';
+    });
+
+    // 关闭模态框
+    closeModalBtn.addEventListener('click', () => {
+      wateringModal.classList.add('hidden');
+    });
+
+    cancelWateringBtn.addEventListener('click', () => {
+      wateringModal.classList.add('hidden');
+    });
+
+    // 保存浇水记录
+    wateringForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const area = modalAreaEl.value;
+      const date = modalDateEl.value;
+      const person = modalPersonEl.value || '管理员';
+      const notes = modalNotesEl.value;
+      
+      // 更新浇水记录
+      greenAreas[area].lastWatered = date.split(' ')[0]; // 只保存日期部分
+      greenAreas[area].records.unshift({ date, person, notes });
+      
+      // 更新UI
+      updateAreaDetails();
+      updateCalendar();
+      wateringModal.classList.add('hidden');
+    });
+
+    // 生成所有任务
+    function generateAllTasks() {
+      const now = new Date();
+      const tasks = [];
+      
+      if (Object.keys(greenAreas).length === 0) {
+        return tasks;
+      }
+      
+      // 为每个区域生成任务
+      Object.entries(greenAreas).forEach(([area, data]) => {
+        const frequency = parseInt(data.wateringFrequency);
+        
+        if (frequency > 0) {
+          const lastWatered = new Date(data.lastWatered);
+          const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+          const interval = Math.round(daysInMonth / frequency);
+          
+          // 生成未来30天的浇水任务
+          for (let i = 1; i <= 3; i++) {
+            const taskDate = new Date(lastWatered.getTime() + i * interval * 24 * 60 * 60 * 1000);
+            
+            // 只显示未来30天内的任务
+            const daysDiff = Math.ceil((taskDate - now) / (1000 * 60 * 60 * 24));
+            if (daysDiff <= 30 && daysDiff >= 0) {
+              tasks.push({
+                date: taskDate.toISOString().split('T')[0],
+                area: area,
+                task: "浇水",
+                status: taskDate < now ? "逾期" : "待完成",
+                // 待完成任务不指定负责人
+                person: taskDate < now ? (data.records[0]?.person || "待分配") : "待分配"
+              });
+            }
+          }
+        }
+      });
+      
+      // 按日期排序
+      tasks.sort((a, b) => new Date(a.date) - new Date(b.date));
+      return tasks;
+    }
+
+    // 更新任务日历
+    function updateCalendar() {
+      // 生成所有任务
+      allTasks = generateAllTasks();
+      
+      // 计算总页数
+      const totalPages = Math.max(1, Math.ceil(allTasks.length / tasksPerPage));
+      
+      // 更新分页信息
+      currentPage = Math.min(currentPage, totalPages);
+      currentPageEl.textContent = currentPage;
+      totalPagesEl.textContent = totalPages;
+      
+      // 更新分页按钮状态
+      prevPageBtn.disabled = currentPage === 1;
+      nextPageBtn.disabled = currentPage === totalPages;
+      
+      // 获取当前页的任务
+      const startIndex = (currentPage - 1) * tasksPerPage;
+      const endIndex = startIndex + tasksPerPage;
+      const currentTasks = allTasks.slice(startIndex, endIndex);
+      
+      // 清空日历表格
+      calendarBody.innerHTML = '';
+      
+      if (currentTasks.length === 0) {
+        calendarBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="px-3 py-4 text-center text-sm text-gray-500">暂无任务</td>
+          </tr>
+        `;
+        return;
+      }
+      
+      // 显示当前页的任务
+      currentTasks.forEach(task => {
+        const row = document.createElement('tr');
+        let statusClass = "text-gray-500";
+        if (task.status === "逾期") statusClass = "text-danger";
+        if (task.status === "待完成") statusClass = "text-warning";
+        
+        row.innerHTML = `
+          <td class="px-3 py-2 text-sm">${task.date}</td>
+          <td class="px-3 py-2 text-sm font-medium">${task.area}</td>
+          <td class="px-3 py-2 text-sm">${task.task}</td>
+          <td class="px-3 py-2 text-sm ${statusClass}">${task.status}</td>
+          <td class="px-3 py-2 text-sm">${task.person}</td>
+        `;
+        calendarBody.appendChild(row);
+      });
+    }
+
+    // 上一页
+    function goToPrevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        updateCalendar();
+      }
+    }
+
+    // 下一页
+    function goToNextPage() {
+      const totalPages = Math.ceil(allTasks.length / tasksPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        updateCalendar();
+      }
+    }
+
+    // 刷新状态
+    refreshBtn.addEventListener('click', () => {
+      updateAreaDetails();
+      updateCalendar();
+      alert('状态已刷新');
+    });
+  </script>
+</body>
+</html>
