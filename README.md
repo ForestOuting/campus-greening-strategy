@@ -1,0 +1,94 @@
+# 山东大学青岛校区绿化战略图管理系统 🌿
+
+这是一个用于校园绿化区域管理的可视化网页系统，支持绘制、编辑和管理绿化区域，实现浇水提醒、状态颜色标识、任务日历、操作日志记录等功能。
+
+## 🚀 功能概览
+
+- 可视化绿化地图（支持绘制区域）
+- 自动计算状态（正常 / 需要浇水 / 已逾期）
+- 绿化区域详情与浇水频率设置
+- 浇水记录及历史分页
+- 校园绿化任务日历（自动生成）
+- 模态框操作交互（删除、添加、绘制密码保护）
+![alt text](<2025-07-22 172542.png>)
+
+## 📂 项目结构
+
+```
+school-greening-map/
+├── public/
+│   ├── index.html          # 主界面页面
+│   └── assets/
+│       └── SchoolMap.png   # 校园地图背景图
+├── package.json            # 项目启动配置
+└── README.md               # 项目说明
+```
+
+## 🛠️ 安装和运行
+
+### 1. 安装依赖
+
+```bash
+npm install
+```
+
+### 2. 启动本地开发服务器
+
+```bash
+npm start
+```
+
+会自动打开浏览器，访问 `http://127.0.0.1:8080`，即可使用系统。
+
+> 本项目使用 [`live-server`](https://www.npmjs.com/package/live-server) 快速开发预览。
+
+## 🔐 默认密码
+
+- 添加新区域绘制密码：`654321`
+- 删除区域确认密码：`123456`
+
+## 📸 初始化
+
+绘制的新区域的初始状态都是正常，初始地图上三个绿化区域分别为正常 需要浇水 已逾期这三个状态，当点击区域B 区域C后会监听以返回正常状态。
+![alt text](<2025-07-22 172137.png>)
+![alt text](<2025-07-22 172159.png>)
+
+## 🌐 Gitee Pages 部署
+
+### 部署步骤：
+
+1. **注册Gitee账号**：访问 [https://gitee.com](https://gitee.com) 注册账号
+
+2. **创建仓库**：
+   - 仓库名：`campus-greening-strategy`
+   - 选择公开仓库
+   - 使用README初始化
+
+3. **上传项目文件**：
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git remote add origin https://gitee.com/your-username/campus-greening-strategy.git
+   git push -u origin master
+   ```
+
+4. **启用Gitee Pages**：
+   - 进入仓库 → 服务 → Gitee Pages
+   - 选择master分支
+   - 点击启动
+
+5. **访问网站**：
+   ```
+   https://your-username.gitee.io/campus-greening-strategy
+   ```
+
+### 其他设备访问：
+- 手机：打开浏览器输入网站地址
+- 电脑：打开浏览器输入网站地址
+- 微信：复制链接到微信分享
+
+## 🧑‍💻 作者
+
+ForestOuting
+Chen Bingcheng
