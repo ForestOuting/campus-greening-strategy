@@ -4,7 +4,7 @@
   "description": "学校绿化战略图管理系统",
   "scripts": {
     "start": "live-server public --open=index.html",
-    "build": "if exist dist rmdir /s /q dist && mkdir dist && xcopy public\\* dist\\ /E /I /Y && echo Build complete. Files copied to dist/ directory."
+    "build": "node build.js"
   },
   "devDependencies": {
     "live-server": "^1.2.2"
