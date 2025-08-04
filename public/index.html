@@ -69,286 +69,54 @@
         filter: brightness(1);
       }
     }
-
-    /* 移动端专用样式 */
-    @media (max-width: 768px) {
-      /* 顶部导航栏移动端优化 */
-      .mobile-header {
-        padding: 0.5rem 1rem;
-      }
-      
-      .mobile-header h1 {
-        font-size: 1rem;
-        line-height: 1.2;
-        max-width: 200px;
-      }
-      
-      .mobile-header img {
-        height: 2rem;
-        width: auto;
-      }
-      
-      .mobile-header .header-buttons {
-        flex-direction: column;
-        gap: 0.25rem;
-      }
-      
-      .mobile-header .header-buttons button {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-      }
-      
-      /* 主要内容区移动端优化 */
-      .mobile-main {
-        padding: 0.5rem;
-        gap: 0.5rem;
-      }
-      
-      .mobile-card {
-        border-radius: 0.75rem;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      }
-      
-      .mobile-card h2 {
-        font-size: 1.125rem;
-        margin-bottom: 0.75rem;
-      }
-      
-      /* 地图容器移动端优化 */
-      .mobile-map-container {
-        border-radius: 0.75rem;
-        overflow: hidden;
-        background: white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      
-      .mobile-map-container svg {
-        width: 100%;
-        height: auto;
-        max-height: 60vh;
-      }
-      
-      /* 按钮组移动端优化 */
-      .mobile-button-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin: 0.75rem 0;
-      }
-      
-      .mobile-button-group button {
-        flex: 1;
-        min-width: 120px;
-        padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        transition: all 0.2s ease;
-      }
-      
-      /* 表单移动端优化 */
-      .mobile-form {
-        background: white;
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin: 0.5rem 0;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      
-      .mobile-form input,
-      .mobile-form select,
-      .mobile-form textarea {
-        width: 100%;
-        padding: 0.75rem;
-        border: 2px solid #e5e7eb;
-        border-radius: 0.5rem;
-        font-size: 1rem;
-        transition: border-color 0.2s ease;
-      }
-      
-      .mobile-form input:focus,
-      .mobile-form select:focus,
-      .mobile-form textarea:focus {
-        outline: none;
-        border-color: #8b1e23;
-        box-shadow: 0 0 0 3px rgba(139, 30, 35, 0.1);
-      }
-      
-      /* 表格移动端优化 */
-      .mobile-table {
-        width: 100%;
-        border-radius: 0.5rem;
-        overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      
-      .mobile-table th,
-      .mobile-table td {
-        padding: 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #e5e7eb;
-      }
-      
-      .mobile-table th {
-        background: #f9fafb;
-        font-weight: 600;
-        color: #374151;
-      }
-      
-      /* 模态框移动端优化 */
-      .mobile-modal {
-        padding: 1rem;
-        margin: 1rem;
-        max-height: 90vh;
-        overflow-y: auto;
-      }
-      
-      .mobile-modal .modal-content {
-        border-radius: 1rem;
-        padding: 1.5rem;
-      }
-      
-      /* 状态指示器移动端优化 */
-      .mobile-status {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem;
-        border-radius: 0.5rem;
-        margin: 0.5rem 0;
-        font-size: 0.875rem;
-      }
-      
-      .mobile-status.success {
-        background: #d1fae5;
-        color: #065f46;
-        border: 1px solid #a7f3d0;
-      }
-      
-      .mobile-status.warning {
-        background: #fef3c7;
-        color: #92400e;
-        border: 1px solid #fde68a;
-      }
-      
-      .mobile-status.danger {
-        background: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
-      }
-      
-      /* 触摸优化 */
-      .mobile-touch-target {
-        min-height: 44px;
-        min-width: 44px;
-      }
-      
-      /* 滚动优化 */
-      .mobile-scroll-smooth {
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-      }
-      
-      /* 字体大小移动端优化 */
-      .mobile-text-sm {
-        font-size: 0.875rem;
-      }
-      
-      .mobile-text-base {
-        font-size: 1rem;
-      }
-      
-      .mobile-text-lg {
-        font-size: 1.125rem;
-      }
-      
-      .mobile-text-xl {
-        font-size: 1.25rem;
-      }
-      
-      /* 间距移动端优化 */
-      .mobile-space-y-2 > * + * {
-        margin-top: 0.5rem;
-      }
-      
-      .mobile-space-y-4 > * + * {
-        margin-top: 1rem;
-      }
-      
-      /* 隐藏桌面端元素 */
-      .desktop-only {
-        display: none !important;
-      }
-      
-      /* 显示移动端元素 */
-      .mobile-only {
-        display: block !important;
-      }
-    }
-    
-    /* 桌面端隐藏移动端元素 */
-    @media (min-width: 769px) {
-      .mobile-only {
-        display: none !important;
-      }
-      
-      .desktop-only {
-        display: block !important;
-      }
-    }
   </style>
 </head>
 <body class="font-inter bg-gray-100 text-gray-700 min-h-screen flex flex-col">
   <!-- 顶部导航 - 修改为红色背景 -->
-  <header class="bg-primary text-white shadow-md mobile-header">
+  <header class="bg-primary text-white shadow-md">
     <div class="container mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center space-x-3">
         <!-- 增大了logo尺寸 -->
-        <img src="assets/ShanDa.png" alt="Logo" class="h-10 mobile-touch-target">
+        <img src="assets/ShanDa.png" alt="Logo" class="h-10">
         <!-- 使用华文中宋字体，增大了字体 -->
         <h1 class="text-2xl font-bold font-stzhongsong">新大正山东大学(青岛)绿化作战图</h1>
       </div>
-      <div class="flex items-center space-x-4 header-buttons">
-        <span id="current-date" class="text-sm mobile-text-sm"></span>
-        <button id="data-manager-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-3 py-1 text-sm flex items-center mobile-touch-target">
-          <i class="fa fa-cloud mr-1"></i> <span class="mobile-only">数据</span><span class="desktop-only">数据管理</span>
+      <div class="flex items-center space-x-4">
+        <span id="current-date" class="text-sm"></span>
+        <button id="data-manager-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-3 py-1 text-sm flex items-center">
+          <i class="fa fa-cloud mr-1"></i> 数据管理
         </button>
-        <button id="refresh-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-3 py-1 text-sm flex items-center mobile-touch-target">
-          <i class="fa fa-refresh mr-1"></i> <span class="mobile-only">刷新</span><span class="desktop-only">刷新状态</span>
+        <button id="refresh-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-3 py-1 text-sm flex items-center">
+          <i class="fa fa-refresh mr-1"></i> 刷新状态
         </button>
       </div>
     </div>
   </header>
 
   <!-- 主要内容区 -->
-  <main class="flex-grow container mx-auto px-4 py-6 mobile-main">
+  <main class="flex-grow container mx-auto px-4 py-6">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- 左侧：绿化区域地图 -->
-      <div class="lg:col-span-2 bg-white rounded-lg shadow p-4 mobile-card mobile-map-container">
+      <div class="lg:col-span-2 bg-white rounded-lg shadow p-4">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold flex items-center mobile-text-lg">
-            <i class="fa fa-map-o mr-2 text-warning"></i><span class="mobile-only">绿化地图</span><span class="desktop-only">山东大学青岛校区绿化地图</span>
-            <span id="drawing-status" class="ml-3 text-sm bg-warning/20 text-warning px-2 py-1 rounded hidden mobile-status warning">
+          <h2 class="text-lg font-semibold flex items-center">
+            <i class="fa fa-map-o mr-2 text-warning"></i>山东大学青岛校区绿化地图
+            <span id="drawing-status" class="ml-3 text-sm bg-warning/20 text-warning px-2 py-1 rounded hidden">
               <i class="fa fa-pencil mr-1"></i>绘制模式
             </span>
           </h2>
-          <div class="flex space-x-2 mobile-button-group">
-            <button id="draw-area" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded flex items-center mobile-touch-target">
+          <div class="flex space-x-2">
+            <button id="draw-area" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded flex items-center">
               <i class="fa fa-pencil"></i>
-              <span class="ml-1 hidden sm:inline desktop-only">绘制新区域</span>
-              <span class="ml-1 sm:hidden mobile-only">绘制</span>
+              <span class="ml-1 hidden sm:inline">绘制新区域</span>
             </button>
-            <button id="cancel-drawing" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded hidden mobile-touch-target">
+            <button id="cancel-drawing" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded hidden">
               <i class="fa fa-times"></i>
-              <span class="ml-1 hidden sm:inline desktop-only">取消绘制</span>
-              <span class="ml-1 sm:hidden mobile-only">取消</span>
+              <span class="ml-1 hidden sm:inline">取消绘制</span>
             </button>
-            <button id="confirm-drawing" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded hidden mobile-touch-target">
+            <button id="confirm-drawing" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded hidden">
               <i class="fa fa-check"></i>
-              <span class="ml-1 hidden sm:inline desktop-only">确定区域</span>
-              <span class="ml-1 sm:hidden mobile-only">确定</span>
+              <span class="ml-1 hidden sm:inline">确定区域</span>
             </button>
           </div>
         </div>
@@ -381,21 +149,21 @@
       </div>
       
       <!-- 右侧：绿化管理面板 -->
-      <div class="bg-white rounded-lg shadow p-4 mobile-card">
-        <h2 class="text-lg font-semibold mb-4 flex items-center mobile-text-lg">
-          <i class="fa fa-tasks mr-2 text-warning"></i><span class="mobile-only">管理</span><span class="desktop-only">绿化管理</span>
+      <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="text-lg font-semibold mb-4 flex items-center">
+          <i class="fa fa-tasks mr-2 text-warning"></i>绿化管理
         </h2>
         
         <!-- 绿化区域选择器 -->
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-600 mb-1 mobile-text-sm">选择绿化区域</label>
-          <div id="area-buttons" class="grid grid-cols-3 gap-2 mobile-button-group">
+          <label class="block text-sm font-medium text-gray-600 mb-1">选择绿化区域</label>
+          <div id="area-buttons" class="grid grid-cols-3 gap-2">
           </div>
         </div>
         
         <!-- 当前选中区域信息 -->
-        <div id="area-details" class="bg-gray-50 rounded p-3 border border-gray-200 mb-4 mobile-form">
-          <h3 class="text-base font-medium mb-2 mobile-text-base" id="area-name">未选择区域</h3>
+        <div id="area-details" class="bg-gray-50 rounded p-3 border border-gray-200 mb-4">
+          <h3 class="text-base font-medium mb-2" id="area-name">未选择区域</h3>
           
           <div class="space-y-2">
             <div class="flex justify-between">
@@ -425,33 +193,33 @@
           </div>
         </div>
         
-        <!-- 操作按钮 - 改为橙色 -->
-        <div class="flex space-x-3 mobile-button-group">
-          <button id="record-watering" class="flex-1 bg-warning hover:bg-warning/90 transition-colors text-white py-2 px-4 rounded flex items-center justify-center mobile-touch-target">
-            <i class="fa fa-check-circle mr-1"></i> <span class="mobile-only">浇水</span><span class="desktop-only">记录浇水</span>
+                <!-- 操作按钮 - 改为橙色 -->
+        <div class="flex space-x-3">
+          <button id="record-watering" class="flex-1 bg-warning hover:bg-warning/90 transition-colors text-white py-2 px-4 rounded flex items-center justify-center">
+            <i class="fa fa-check-circle mr-1"></i> 记录浇水
           </button>
-                      <button id="delete-area" class="bg-danger hover:bg-danger/90 transition-colors text-white py-2 px-4 rounded flex items-center justify-center mobile-touch-target">
-              <i class="fa fa-trash mr-1"></i> <span class="mobile-only">删除</span><span class="desktop-only">删除区域</span>
-            </button>
+          <button id="delete-area" class="bg-danger hover:bg-danger/90 transition-colors text-white py-2 px-4 rounded flex items-center justify-center">
+            <i class="fa fa-trash mr-1"></i> 删除区域
+          </button>
         </div>
         
         <!-- 近期浇水记录 -->
         <div class="mt-6">
-          <h3 class="text-base font-medium mb-2 flex items-center mobile-text-base">
-            <i class="fa fa-history mr-2 text-warning"></i><span class="mobile-only">记录</span><span class="desktop-only">浇水记录</span>
+          <h3 class="text-base font-medium mb-2 flex items-center">
+            <i class="fa fa-history mr-2 text-warning"></i>浇水记录
           </h3>
-          <div id="watering-records" class="space-y-2 max-h-40 overflow-y-auto pr-1 mobile-scroll-smooth">
+          <div id="watering-records" class="space-y-2 max-h-40 overflow-y-auto pr-1">
             <div class="text-center py-4 text-gray-500 text-sm">暂无浇水记录</div>
           </div>
           
           <!-- 浇水记录分页控件 -->
-          <div id="watering-pagination" class="flex justify-between items-center mt-2 hidden mobile-button-group">
-            <div id="watering-page-info" class="text-sm text-gray-600 mobile-text-sm">第 <span id="watering-current-page">1</span> 页，共 <span id="watering-total-pages">1</span> 页</div>
+          <div id="watering-pagination" class="flex justify-between items-center mt-2 hidden">
+            <div id="watering-page-info" class="text-sm text-gray-600">第 <span id="watering-current-page">1</span> 页，共 <span id="watering-total-pages">1</span> 页</div>
             <div class="flex space-x-2">
-              <button id="watering-prev-page" class="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded disabled:opacity-50 text-xs mobile-touch-target" disabled>
+              <button id="watering-prev-page" class="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded disabled:opacity-50 text-xs" disabled>
                 <i class="fa fa-chevron-left"></i>
               </button>
-              <button id="watering-next-page" class="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded disabled:opacity-50 text-xs mobile-touch-target" disabled>
+              <button id="watering-next-page" class="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded disabled:opacity-50 text-xs" disabled>
                 <i class="fa fa-chevron-right"></i>
               </button>
             </div>
@@ -461,36 +229,36 @@
     </div>
     
     <!-- 绿化任务日历 -->
-    <div class="mt-6 bg-white rounded-lg shadow p-4 mobile-card">
-      <h2 class="text-lg font-semibold mb-4 flex items-center mobile-text-lg">
-        <i class="fa fa-calendar mr-2 text-warning"></i><span class="mobile-only">日历</span><span class="desktop-only">绿化任务日历</span>
+    <div class="mt-6 bg-white rounded-lg shadow p-4">
+      <h2 class="text-lg font-semibold mb-4 flex items-center">
+        <i class="fa fa-calendar mr-2 text-warning"></i>绿化任务日历
       </h2>
-      <div class="overflow-x-auto mobile-scroll-smooth">
-        <table class="min-w-full divide-y divide-gray-200 mobile-table">
-          <thead>
-            <tr>
-              <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider mobile-text-sm">日期</th>
-              <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider mobile-text-sm">区域</th>
-              <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider mobile-text-sm">任务</th>
-              <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider mobile-text-sm">状态</th>
-            </tr>
-          </thead>
-          <tbody id="calendar-body" class="bg-white divide-y divide-gray-200">
-            <tr>
-              <td colspan="4" class="px-3 py-4 text-center text-sm text-gray-500 mobile-text-sm">暂无绿化任务</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日期</th>
+                <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">区域</th>
+                <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">任务</th>
+                <th class="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+              </tr>
+            </thead>
+            <tbody id="calendar-body" class="bg-white divide-y divide-gray-200">
+              <tr>
+                <td colspan="4" class="px-3 py-4 text-center text-sm text-gray-500">暂无绿化任务</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       
       <!-- 分页控件 -->
-      <div id="pagination-controls" class="flex justify-between items-center mt-4 mobile-button-group">
-        <div id="page-info" class="text-sm text-gray-600 mobile-text-sm">第 <span id="current-page">1</span> 页，共 <span id="total-pages">1</span> 页</div>
+      <div id="pagination-controls" class="flex justify-between items-center mt-4">
+        <div id="page-info" class="text-sm text-gray-600">第 <span id="current-page">1</span> 页，共 <span id="total-pages">1</span> 页</div>
         <div class="flex space-x-2">
-          <button id="prev-page" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50 mobile-touch-target" disabled>
+          <button id="prev-page" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50" disabled>
             <i class="fa fa-chevron-left"></i>
           </button>
-          <button id="next-page" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50 mobile-touch-target" disabled>
+          <button id="next-page" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded disabled:opacity-50" disabled>
             <i class="fa fa-chevron-right"></i>
           </button>
         </div>
@@ -507,8 +275,8 @@
   </footer>
 
   <!-- 模态框 - 记录浇水 -->
-  <div id="watering-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden mobile-modal">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 transform transition-all modal-content">
+  <div id="watering-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 transform transition-all">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-semibold">记录浇水</h3>
         <button id="close-modal" class="text-gray-400 hover:text-gray-500">
@@ -516,43 +284,43 @@
         </button>
       </div>
       
-      <form id="watering-form" class="mobile-form">
+      <form id="watering-form">
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1 mobile-text-sm">区域</label>
-          <input type="text" id="modal-area" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50 mobile-touch-target" readonly>
+          <label class="block text-sm font-medium text-gray-700 mb-1">区域</label>
+          <input type="text" id="modal-area" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50" readonly>
         </div>
         
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1 mobile-text-sm">日期</label>
-          <input type="text" id="modal-date" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50 mobile-touch-target" readonly>
+          <label class="block text-sm font-medium text-gray-700 mb-1">日期</label>
+          <input type="text" id="modal-date" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50" readonly>
         </div>
         
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1 mobile-text-sm">负责人<span class="text-danger">*</span></label>
-          <input type="text" id="modal-person" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50 mobile-touch-target" placeholder="输入负责人姓名" required>
+          <label class="block text-sm font-medium text-gray-700 mb-1">负责人<span class="text-danger">*</span></label>
+          <input type="text" id="modal-person" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50" placeholder="输入负责人姓名" required>
         </div>
         
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1 mobile-text-sm">备注<span class="text-danger">*</span></label>
-          <textarea id="modal-notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50 mobile-touch-target" placeholder="输入备注信息" required></textarea>
+          <label class="block text-sm font-medium text-gray-700 mb-1">备注<span class="text-danger">*</span></label>
+          <textarea id="modal-notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50" placeholder="输入备注信息" required></textarea>
         </div>
         
         <!-- 添加倒计时提示 -->
-        <div id="countdown-tip" class="mt-4 text-sm text-gray-600 hidden mobile-text-sm">
+        <div id="countdown-tip" class="mt-4 text-sm text-gray-600 hidden">
           请确认信息，<span id="countdown-seconds">3</span>秒后自动提交...
         </div>
         
-        <div class="flex space-x-3 mt-4 mobile-button-group">
-          <button type="button" id="cancel-watering" class="flex-1 bg-gray-200 hover:bg-gray-300 transition-colors text-gray-700 py-2 px-4 rounded mobile-touch-target">取消</button>
-          <button type="submit" class="flex-1 bg-warning hover:bg-warning/90 transition-colors text-white py-2 px-4 rounded mobile-touch-target" id="submit-watering">保存记录</button>
+        <div class="flex space-x-3 mt-4">
+          <button type="button" id="cancel-watering" class="flex-1 bg-gray-200 hover:bg-gray-300 transition-colors text-gray-700 py-2 px-4 rounded">取消</button>
+          <button type="submit" class="flex-1 bg-warning hover:bg-warning/90 transition-colors text-white py-2 px-4 rounded" id="submit-watering">保存记录</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- 模态框 - 删除确认 -->
-  <div id="delete-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden mobile-modal">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 transform transition-all modal-content">
+  <div id="delete-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 transform transition-all">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-semibold">删除区域</h3>
         <button id="close-delete-modal" class="text-gray-400 hover:text-gray-500">
@@ -576,8 +344,8 @@
   </div>
 
   <!-- 模态框 - 绘制区域密码 -->
-  <div id="drawing-password-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden mobile-modal">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 transform transition-all modal-content">
+  <div id="drawing-password-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 transform transition-all">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-semibold">绘制新区域</h3>
         <button id="close-drawing-modal" class="text-gray-400 hover:text-gray-500">
