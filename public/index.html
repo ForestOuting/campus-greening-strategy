@@ -1940,9 +1940,13 @@
                 <i class="fa fa-undo mr-2"></i>恢复备份
               </button>
               
-              <button id="sync-data" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
-                <i class="fa fa-sync mr-2"></i>同步数据
-              </button>
+                             <button id="sync-data" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
+                 <i class="fa fa-sync mr-2"></i>同步数据
+               </button>
+               
+               <button id="force-sync" class="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 transition-colors">
+                 <i class="fa fa-sync-alt mr-2"></i>强制同步
+               </button>
               
               <button id="clear-all-data" class="w-full bg-danger text-white py-2 px-4 rounded hover:bg-danger/90 transition-colors">
                 <i class="fa fa-trash mr-2"></i>清除所有数据
@@ -1971,6 +1975,7 @@
     const createBackupBtn = document.getElementById('create-backup');
     const restoreBackupBtn = document.getElementById('restore-backup');
     const syncDataBtn = document.getElementById('sync-data');
+    const forceSyncBtn = document.getElementById('force-sync');
     const clearAllDataBtn = document.getElementById('clear-all-data');
     
     // 显示数据管理模态框
@@ -2088,6 +2093,31 @@
       }
     });
     
+    // 强制同步数据
+    forceSyncBtn.addEventListener('click', async () => {
+      try {
+        showNotification('🔄 正在强制同步...', 'info');
+        const success = await cloudStorage.forceSync();
+        if (success) {
+          // 重新加载数据并更新界面
+          loadData();
+          redrawAllAreas();
+          updateAreaButtons();
+          updateWateringRecords();
+          updateCalendar();
+          
+          showNotification('✅ 强制同步完成', 'success');
+          updateStorageStatus();
+          updateDataStats();
+        } else {
+          showNotification('⚠️ 强制同步失败', 'warning');
+        }
+      } catch (error) {
+        console.error('强制同步失败:', error);
+        showNotification('❌ 强制同步失败', 'error');
+      }
+    });
+    
     // 清除所有数据
     clearAllDataBtn.addEventListener('click', () => {
       if (confirm('确定要清除所有数据吗？此操作不可恢复！')) {
@@ -2118,6 +2148,7 @@
     // 更新存储状态显示
     function updateStorageStatus() {
       const status = cloudStorage.getStorageStatus();
+      const syncStats = cloudStorage.getSyncStats();
       const statusEl = document.getElementById('storage-status');
       
       statusEl.innerHTML = `
@@ -2138,6 +2169,10 @@
           <span class="${status.isOnline ? 'text-green-600' : 'text-red-600'}">
             ${status.isOnline ? '✅ 在线' : '❌ 离线'}
           </span>
+        </div>
+        <div class="flex justify-between">
+          <span>设备数量:</span>
+          <span class="text-blue-600">${syncStats.totalDevices} 个</span>
         </div>
         <div class="flex justify-between">
           <span>设备ID:</span>
