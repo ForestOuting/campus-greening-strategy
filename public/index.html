@@ -75,19 +75,19 @@
   <!-- 顶部导航 - 修改为红色背景 -->
   <header class="bg-primary text-white shadow-md">
     <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-      <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-3 flex-1 min-w-0">
         <!-- 增大了logo尺寸 -->
-        <img src="assets/ShanDa.png" alt="Logo" class="h-10">
-        <!-- 使用华文中宋字体，增大了字体 -->
-        <h1 class="text-2xl font-bold font-stzhongsong">新大正山东大学(青岛)绿化作战图</h1>
+        <img src="assets/ShanDa.png" alt="Logo" class="h-10 flex-shrink-0">
+        <!-- 使用华文中宋字体，增大了字体，手机端自适应 -->
+        <h1 class="text-2xl font-bold font-stzhongsong truncate md:text-2xl text-lg">新大正山东大学(青岛)绿化作战图</h1>
       </div>
-      <div class="flex items-center space-x-4">
-        <span id="current-date" class="text-sm"></span>
-        <button id="data-manager-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-3 py-1 text-sm flex items-center">
-          <i class="fa fa-cloud mr-1"></i> 数据管理
+      <div class="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
+        <span id="current-date" class="text-xs md:text-sm hidden sm:block"></span>
+        <button id="data-manager-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-2 md:px-3 py-1 text-xs md:text-sm flex items-center">
+          <i class="fa fa-cloud mr-1"></i> <span class="hidden sm:inline">数据管理</span>
         </button>
-        <button id="refresh-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-3 py-1 text-sm flex items-center">
-          <i class="fa fa-refresh mr-1"></i> 刷新状态
+        <button id="refresh-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-2 md:px-3 py-1 text-xs md:text-sm flex items-center">
+          <i class="fa fa-refresh mr-1"></i> <span class="hidden sm:inline">刷新状态</span>
         </button>
       </div>
     </div>
