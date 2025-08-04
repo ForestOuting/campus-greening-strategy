@@ -564,9 +564,12 @@
     // 从localStorage和云端加载数据
     async function loadData() {
       try {
-        // 首先尝试从云端加载数据
+        // 首先尝试从云端加载数据并进行多设备合并
         if (window.cloudStorage) {
           try {
+            // 强制同步一次，确保获取最新数据
+            await cloudStorage.syncData();
+            
             const cloudData = await cloudStorage.loadFromCloud();
             if (cloudData && cloudData.greenAreas) {
               // 使用云端数据
@@ -648,6 +651,17 @@
       const now = new Date();
       const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
       currentDateEl.textContent = now.toLocaleDateString('zh-CN', options);
+      
+      // 页面加载时强制同步一次
+      if (window.cloudStorage) {
+        try {
+          console.log('🔄 页面加载，开始强制同步...');
+          await cloudStorage.forceSync();
+          console.log('✅ 页面加载同步完成');
+        } catch (error) {
+          console.warn('页面加载同步失败:', error);
+        }
+      }
       
       // 尝试加载保存的数据（异步）
       const dataLoaded = await loadData();
@@ -1760,10 +1774,10 @@
       saveData();
     });
 
-    // 定期自动保存数据（每30秒）
+    // 定期自动保存数据（每10秒，更频繁）
     setInterval(() => {
       saveData();
-    }, 30000);
+    }, 10000);
     
     // 添加数据备份功能
     function backupData() {
