@@ -5,7 +5,8 @@
   "scripts": {
     "start": "live-server public --open=index.html",
     "build": "node build.js",
-    "build:simple": "node build-simple.js"
+    "build:simple": "node build-simple.js",
+    "build:netlify": "node build-netlify.js"
   },
   "devDependencies": {
     "live-server": "^1.2.2"
