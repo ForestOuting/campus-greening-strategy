@@ -6,7 +6,11 @@
   <title>新大正山东大学(青岛)绿化作战图</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-  <script src="cloud-storage.js"></script>
+  <script src="test-storage.js"></script>
+  <script>
+    console.log('🔄 index.html 开始加载...');
+    console.log('test-storage.js 加载状态:', typeof window.testStorage);
+  </script>
   <script>
     tailwind.config = {
       theme: {
@@ -487,172 +491,58 @@
     // - nextAreaLetter = nextLetter ✓ (更新字母)
     // ================================
 
-    // 保存数据到localStorage和云端
-    async function saveData() {
+    // 保存数据
+    function saveData() {
       try {
-        // 数据完整性验证
-        const dataIntegrity = {
-          greenAreas: typeof greenAreas === 'object' && greenAreas !== null,
-          selectedArea: selectedArea === null || (typeof selectedArea === 'string' && greenAreas[selectedArea]),
-          nextAreaLetter: typeof nextAreaLetter === 'string' && nextAreaLetter.length === 1,
-          currentPage: typeof currentPage === 'number' && currentPage > 0,
-          wateringCurrentPage: typeof wateringCurrentPage === 'number' && wateringCurrentPage > 0
-        };
-        
-        // 检查数据完整性
-        const isValid = Object.values(dataIntegrity).every(valid => valid);
-        if (!isValid) {
-          console.warn('数据完整性检查失败:', dataIntegrity);
-        }
-        
         const dataToSave = {
           greenAreas: greenAreas,
           selectedArea: selectedArea || '',
           nextAreaLetter: nextAreaLetter,
-          currentPage: currentPage.toString(),
-          wateringCurrentPage: wateringCurrentPage.toString()
+          currentPage: currentPage,
+          wateringCurrentPage: wateringCurrentPage
         };
         
-        // 优先使用cloudStorage保存（如果可用）
-        if (window.cloudStorage) {
-          try {
-            await cloudStorage.saveToCloud(dataToSave);
-            console.log('✅ 数据已通过cloudStorage保存');
-          } catch (cloudError) {
-            console.warn('cloudStorage保存失败，使用localStorage:', cloudError);
-            // 如果cloudStorage失败，回退到localStorage
-            saveToLocalStorage();
+        // 使用简化的存储系统
+        if (window.testStorage) {
+          const success = testStorage.saveData(dataToSave);
+          if (success) {
+            console.log('✅ 数据保存成功');
+          } else {
+            console.error('❌ 数据保存失败');
           }
         } else {
-          // 如果没有cloudStorage，直接使用localStorage
-          saveToLocalStorage();
+          console.error('❌ 存储系统未初始化');
         }
-        
       } catch (error) {
         console.error('保存数据失败:', error);
-        // 保存失败时也进行备份
-        backupData();
-      }
-    }
-    
-    // 保存到localStorage的辅助函数
-    function saveToLocalStorage() {
-      try {
-        localStorage.setItem(STORAGE_KEYS.GREEN_AREAS, JSON.stringify(greenAreas));
-        localStorage.setItem(STORAGE_KEYS.SELECTED_AREA, selectedArea || '');
-        localStorage.setItem(STORAGE_KEYS.NEXT_AREA_LETTER, nextAreaLetter);
-        localStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, currentPage.toString());
-        localStorage.setItem(STORAGE_KEYS.WATERING_CURRENT_PAGE, wateringCurrentPage.toString());
-        
-        // 验证保存是否成功
-        const savedAreas = localStorage.getItem(STORAGE_KEYS.GREEN_AREAS);
-        const savedSelectedArea = localStorage.getItem(STORAGE_KEYS.SELECTED_AREA);
-        
-        const saveVerification = {
-          greenAreas: savedAreas !== null,
-          selectedArea: savedSelectedArea !== null,
-          dataSize: savedAreas ? savedAreas.length : 0
-        };
-        
-        console.log('数据已保存到localStorage:', {
-          区域数量: Object.keys(greenAreas).length,
-          选中区域: selectedArea,
-          区域列表: Object.keys(greenAreas),
-          保存验证: saveVerification
-        });
-        
-        // 如果保存失败，尝试从备份恢复
-        if (!saveVerification.greenAreas && Object.keys(greenAreas).length > 0) {
-          console.error('localStorage保存失败，尝试从备份恢复...');
-          backupData();
-        }
-      } catch (error) {
-        console.error('localStorage保存失败:', error);
-        backupData();
       }
     }
 
-    // 从localStorage和云端加载数据
-    async function loadData() {
+    // 加载数据
+    function loadData() {
       try {
-        // 首先尝试从cloudStorage加载数据
-        if (window.cloudStorage) {
-          try {
-            const cloudData = await cloudStorage.loadFromCloud();
-            if (cloudData && cloudData.greenAreas) {
-              // 使用cloudStorage数据
-              greenAreas = cloudData.greenAreas;
-              selectedArea = cloudData.selectedArea || '';
-              nextAreaLetter = cloudData.nextAreaLetter || 'A';
-              currentPage = parseInt(cloudData.currentPage) || 1;
-              wateringCurrentPage = parseInt(cloudData.wateringCurrentPage) || 1;
-              
-              console.log('✅ 已从cloudStorage加载数据:', {
-                区域数量: Object.keys(greenAreas).length,
-                选中区域: selectedArea,
-                区域列表: Object.keys(greenAreas)
-              });
-              
-              return true;
-            }
-          } catch (cloudError) {
-            console.warn('从cloudStorage加载失败，尝试localStorage:', cloudError);
-          }
+              if (window.testStorage) {
+        const data = testStorage.loadData();
+        if (data) {
+          greenAreas = data.greenAreas || {};
+          selectedArea = data.selectedArea || '';
+          nextAreaLetter = data.nextAreaLetter || 'A';
+          currentPage = data.currentPage || 1;
+          wateringCurrentPage = data.wateringCurrentPage || 1;
+          
+          console.log('✅ 数据加载成功');
+          return true;
         }
+      }
         
-        // 如果cloudStorage加载失败，从localStorage加载
-        const savedAreas = localStorage.getItem(STORAGE_KEYS.GREEN_AREAS);
-        if (savedAreas) {
-          try {
-            greenAreas = JSON.parse(savedAreas);
-            console.log('已从localStorage加载绿化区域数据:', Object.keys(greenAreas));
-          } catch (parseError) {
-            console.error('解析localStorage数据失败:', parseError);
-            greenAreas = {};
-          }
-        } else {
-          console.log('未找到保存的绿化区域数据');
-          greenAreas = {};
-        }
-
-        // 加载选中的区域
-        const savedSelectedArea = localStorage.getItem(STORAGE_KEYS.SELECTED_AREA);
-        if (savedSelectedArea && greenAreas[savedSelectedArea]) {
-          selectedArea = savedSelectedArea;
-          console.log('已加载选中的区域:', selectedArea);
-        } else {
-          console.log('未找到有效的选中区域数据');
-          selectedArea = '';
-        }
-
-        // 加载区域字母计数器
-        const savedNextAreaLetter = localStorage.getItem(STORAGE_KEYS.NEXT_AREA_LETTER);
-        if (savedNextAreaLetter) {
-          nextAreaLetter = savedNextAreaLetter;
-          console.log('已加载区域字母计数器:', nextAreaLetter);
-        } else {
-          nextAreaLetter = 'A';
-        }
-
-        // 加载分页状态
-        const savedCurrentPage = localStorage.getItem(STORAGE_KEYS.CURRENT_PAGE);
-        if (savedCurrentPage) {
-          currentPage = parseInt(savedCurrentPage);
-          console.log('已加载当前页:', currentPage);
-        } else {
-          currentPage = 1;
-        }
-
-        const savedWateringCurrentPage = localStorage.getItem(STORAGE_KEYS.WATERING_CURRENT_PAGE);
-        if (savedWateringCurrentPage) {
-          wateringCurrentPage = parseInt(savedWateringCurrentPage);
-          console.log('已加载浇水记录当前页:', wateringCurrentPage);
-        } else {
-          wateringCurrentPage = 1;
-        }
-
-        console.log('数据已从localStorage加载完成');
-        return true;
+        console.log('⚠️ 没有找到保存的数据，使用默认值');
+        greenAreas = {};
+        selectedArea = '';
+        nextAreaLetter = 'A';
+        currentPage = 1;
+        wateringCurrentPage = 1;
+        
+        return false;
       } catch (error) {
         console.error('加载数据失败:', error);
         return false;
@@ -660,25 +550,14 @@
     }
 
     // 初始化
-    document.addEventListener("DOMContentLoaded", async function() {
+    document.addEventListener("DOMContentLoaded", function() {
       // 设置当前日期
       const now = new Date();
       const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
       currentDateEl.textContent = now.toLocaleDateString('zh-CN', options);
       
-      // 页面加载时强制同步一次
-      if (window.cloudStorage) {
-        try {
-          console.log('🔄 页面加载，开始强制同步...');
-          await cloudStorage.forceSync();
-          console.log('✅ 页面加载同步完成');
-        } catch (error) {
-          console.warn('页面加载同步失败:', error);
-        }
-      }
-      
-      // 尝试加载保存的数据（异步）
-      const dataLoaded = await loadData();
+      // 尝试加载保存的数据
+      const dataLoaded = loadData();
       
       // 验证加载的数据是否有效
       const hasValidData = dataLoaded && 
@@ -687,11 +566,9 @@
       
       if (hasValidData) {
         console.log('数据有效，重新绘制所有区域');
-        // 如果有保存的数据，重新绘制所有区域
         redrawAllAreas();
       } else {
         console.log('数据无效或为空，初始化默认区域');
-        // 只有在完全没有数据时才初始化默认区域
         initializeDefaultAreas();
       }
       
@@ -2046,9 +1923,24 @@
     
     // 显示数据管理模态框
     dataManagerBtn.addEventListener('click', () => {
-      updateStorageStatus();
-      updateDataStats();
-      dataManagerModal.classList.remove('hidden');
+      console.log('🔄 数据管理按钮被点击');
+      console.log('testStorage状态:', window.testStorage);
+      
+      if (!window.testStorage) {
+        console.error('❌ testStorage未初始化');
+        alert('存储系统未初始化，请刷新页面重试');
+        return;
+      }
+      
+      try {
+        updateStorageStatus();
+        updateDataStats();
+        dataManagerModal.classList.remove('hidden');
+        console.log('✅ 数据管理模态框已显示');
+      } catch (error) {
+        console.error('显示数据管理模态框失败:', error);
+        alert('打开数据管理失败: ' + error.message);
+      }
     });
     
     // 关闭数据管理模态框
@@ -2063,9 +1955,14 @@
       }
     });
     
-    // 保存到云端
-    saveToCloudBtn.addEventListener('click', async () => {
+    // 保存数据
+    saveToCloudBtn.addEventListener('click', () => {
       try {
+        if (!window.testStorage) {
+          showNotification('❌ 存储系统未初始化', 'error');
+          return;
+        }
+        
         const data = {
           greenAreas: greenAreas,
           selectedArea: selectedArea,
@@ -2074,30 +1971,30 @@
           wateringCurrentPage: wateringCurrentPage
         };
         
-        const success = await cloudStorage.saveToCloud(data);
+        const success = testStorage.saveData(data);
         if (success) {
-          showNotification('✅ 数据已保存到云端', 'success');
+          showNotification('✅ 数据已保存', 'success');
           updateStorageStatus();
         } else {
-          showNotification('❌ 保存到云端失败', 'error');
+          showNotification('❌ 保存失败', 'error');
         }
       } catch (error) {
-        console.error('保存到云端失败:', error);
-        showNotification('❌ 保存到云端失败', 'error');
+        console.error('保存失败:', error);
+        showNotification('❌ 保存失败: ' + error.message, 'error');
       }
     });
     
-    // 从云端加载
-    loadFromCloudBtn.addEventListener('click', async () => {
+    // 加载数据
+    loadFromCloudBtn.addEventListener('click', () => {
       try {
-        const data = await cloudStorage.loadFromCloud();
+        const data = testStorage.loadData();
         if (data) {
           // 更新应用数据
           greenAreas = data.greenAreas || {};
           selectedArea = data.selectedArea || '';
           nextAreaLetter = data.nextAreaLetter || 'A';
-          currentPage = parseInt(data.currentPage) || 1;
-          wateringCurrentPage = parseInt(data.wateringCurrentPage) || 1;
+          currentPage = data.currentPage || 1;
+          wateringCurrentPage = data.wateringCurrentPage || 1;
           
           // 重新绘制界面
           redrawAllAreas();
@@ -2105,21 +2002,21 @@
           updateWateringRecords();
           updateCalendar();
           
-          showNotification('✅ 数据已从云端加载', 'success');
+          showNotification('✅ 数据已加载', 'success');
           updateStorageStatus();
           updateDataStats();
         } else {
-          showNotification('⚠️ 没有找到云端数据', 'warning');
+          showNotification('⚠️ 没有找到保存的数据', 'warning');
         }
       } catch (error) {
-        console.error('从云端加载失败:', error);
-        showNotification('❌ 从云端加载失败', 'error');
+        console.error('加载失败:', error);
+        showNotification('❌ 加载失败', 'error');
       }
     });
     
     // 创建备份
     createBackupBtn.addEventListener('click', () => {
-      const success = cloudStorage.createBackup();
+      const success = testStorage.createBackup();
       if (success) {
         showNotification('✅ 备份创建成功', 'success');
         updateStorageStatus();
@@ -2130,7 +2027,7 @@
     
     // 恢复备份
     restoreBackupBtn.addEventListener('click', () => {
-      const success = cloudStorage.restoreBackup();
+      const success = testStorage.restoreBackup();
       if (success) {
         // 重新加载数据
         loadData();
@@ -2147,10 +2044,10 @@
       }
     });
     
-    // 同步数据
-    syncDataBtn.addEventListener('click', async () => {
+    // 同步数据（简化版本）
+    syncDataBtn.addEventListener('click', () => {
       try {
-        await cloudStorage.syncData();
+        saveData();
         showNotification('✅ 数据同步完成', 'success');
         updateStorageStatus();
       } catch (error) {
@@ -2159,25 +2056,20 @@
       }
     });
     
-    // 强制同步数据
-    forceSyncBtn.addEventListener('click', async () => {
+    // 强制同步数据（简化版本）
+    forceSyncBtn.addEventListener('click', () => {
       try {
         showNotification('🔄 正在强制同步...', 'info');
-        const success = await cloudStorage.forceSync();
-        if (success) {
-          // 重新加载数据并更新界面
-          loadData();
-          redrawAllAreas();
-          updateAreaButtons();
-          updateWateringRecords();
-          updateCalendar();
-          
-          showNotification('✅ 强制同步完成', 'success');
-          updateStorageStatus();
-          updateDataStats();
-        } else {
-          showNotification('⚠️ 强制同步失败', 'warning');
-        }
+        saveData();
+        loadData();
+        redrawAllAreas();
+        updateAreaButtons();
+        updateWateringRecords();
+        updateCalendar();
+        
+        showNotification('✅ 强制同步完成', 'success');
+        updateStorageStatus();
+        updateDataStats();
       } catch (error) {
         console.error('强制同步失败:', error);
         showNotification('❌ 强制同步失败', 'error');
@@ -2187,7 +2079,7 @@
     // 清除所有数据
     clearAllDataBtn.addEventListener('click', () => {
       if (confirm('确定要清除所有数据吗？此操作不可恢复！')) {
-        const success = cloudStorage.clearAllData();
+        const success = testStorage.clearAllData();
         if (success) {
           // 重置应用数据
           greenAreas = {};
@@ -2213,42 +2105,29 @@
     
     // 更新存储状态显示
     function updateStorageStatus() {
-      const status = cloudStorage.getStorageStatus();
-      const syncStats = cloudStorage.getSyncStats();
+      const status = testStorage.getStorageStatus();
       const statusEl = document.getElementById('storage-status');
       
       statusEl.innerHTML = `
         <div class="flex justify-between">
-          <span>本地数据:</span>
-          <span class="${status.hasLocalData ? 'text-green-600' : 'text-red-600'}">
-            ${status.hasLocalData ? '✅ 已保存' : '❌ 未保存'}
+          <span>数据状态:</span>
+          <span class="${status.hasData ? 'text-green-600' : 'text-red-600'}">
+            ${status.hasData ? '✅ 已保存' : '❌ 未保存'}
           </span>
         </div>
         <div class="flex justify-between">
-          <span>备份数据:</span>
+          <span>备份状态:</span>
           <span class="${status.hasBackup ? 'text-green-600' : 'text-red-600'}">
             ${status.hasBackup ? '✅ 已备份' : '❌ 未备份'}
           </span>
-        </div>
-        <div class="flex justify-between">
-          <span>网络状态:</span>
-          <span class="${status.isOnline ? 'text-green-600' : 'text-red-600'}">
-            ${status.isOnline ? '✅ 在线' : '❌ 离线'}
-          </span>
-        </div>
-        <div class="flex justify-between">
-          <span>设备数量:</span>
-          <span class="text-blue-600">${syncStats.totalDevices} 个</span>
         </div>
         <div class="flex justify-between">
           <span>设备ID:</span>
           <span class="text-gray-600 text-xs">${status.deviceId}</span>
         </div>
         <div class="flex justify-between">
-          <span>最后同步:</span>
-          <span class="text-gray-600 text-xs">
-            ${status.lastSync ? new Date(status.lastSync).toLocaleString() : '从未同步'}
-          </span>
+          <span>最后修改:</span>
+          <span class="text-gray-600 text-xs">${status.lastModified}</span>
         </div>
       `;
     }
@@ -2302,6 +2181,15 @@
     // 初始化时更新状态
     updateStorageStatus();
     updateDataStats();
+    
+    // 检查存储系统初始化
+    console.log('页面初始化完成');
+    console.log('testStorage状态:', window.testStorage);
+    if (window.testStorage) {
+      console.log('✅ 存储系统已初始化');
+    } else {
+      console.error('❌ 存储系统未初始化');
+    }
     
     // 云存储功能集成完成 ✅
     // ================================
