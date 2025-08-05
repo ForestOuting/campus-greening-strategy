@@ -281,11 +281,11 @@ class CloudStorage {
   createBackup() {
     try {
       const data = {
-        greenAreas: JSON.parse(localStorage.getItem('greenAreas') || '{}'),
-        selectedArea: localStorage.getItem('selectedArea') || '',
-        nextAreaLetter: localStorage.getItem('nextAreaLetter') || 'A',
-        currentPage: localStorage.getItem('currentPage') || '1',
-        wateringCurrentPage: localStorage.getItem('wateringCurrentPage') || '1',
+        greenAreas: JSON.parse(localStorage.getItem('campus_greening_areas') || '{}'),
+        selectedArea: localStorage.getItem('campus_greening_selected_area') || '',
+        nextAreaLetter: localStorage.getItem('campus_greening_next_area_letter') || 'A',
+        currentPage: localStorage.getItem('campus_greening_current_page') || '1',
+        wateringCurrentPage: localStorage.getItem('campus_greening_watering_current_page') || '1',
         timestamp: Date.now(),
         deviceId: this.deviceId
       };
@@ -310,12 +310,12 @@ class CloudStorage {
 
       const data = JSON.parse(backup);
       
-      // 恢复数据
-      localStorage.setItem('greenAreas', JSON.stringify(data.greenAreas));
-      localStorage.setItem('selectedArea', data.selectedArea);
-      localStorage.setItem('nextAreaLetter', data.nextAreaLetter);
-      localStorage.setItem('currentPage', data.currentPage);
-      localStorage.setItem('wateringCurrentPage', data.wateringCurrentPage);
+      // 恢复数据到正确的键名
+      localStorage.setItem('campus_greening_areas', JSON.stringify(data.greenAreas));
+      localStorage.setItem('campus_greening_selected_area', data.selectedArea);
+      localStorage.setItem('campus_greening_next_area_letter', data.nextAreaLetter);
+      localStorage.setItem('campus_greening_current_page', data.currentPage);
+      localStorage.setItem('campus_greening_watering_current_page', data.wateringCurrentPage);
       
       console.log('✅ 备份恢复成功');
       return true;
@@ -376,11 +376,11 @@ class CloudStorage {
       
       // 获取当前数据
       const currentData = {
-        greenAreas: JSON.parse(localStorage.getItem('greenAreas') || '{}'),
-        selectedArea: localStorage.getItem('selectedArea') || '',
-        nextAreaLetter: localStorage.getItem('nextAreaLetter') || 'A',
-        currentPage: localStorage.getItem('currentPage') || '1',
-        wateringCurrentPage: localStorage.getItem('wateringCurrentPage') || '1'
+        greenAreas: JSON.parse(localStorage.getItem('campus_greening_areas') || '{}'),
+        selectedArea: localStorage.getItem('campus_greening_selected_area') || '',
+        nextAreaLetter: localStorage.getItem('campus_greening_next_area_letter') || 'A',
+        currentPage: localStorage.getItem('campus_greening_current_page') || '1',
+        wateringCurrentPage: localStorage.getItem('campus_greening_watering_current_page') || '1'
       };
       
       // 保存到云端
@@ -390,11 +390,11 @@ class CloudStorage {
       const cloudData = await this.loadFromCloud();
       if (cloudData) {
         // 更新本地数据
-        localStorage.setItem('greenAreas', JSON.stringify(cloudData.greenAreas));
-        localStorage.setItem('selectedArea', cloudData.selectedArea);
-        localStorage.setItem('nextAreaLetter', cloudData.nextAreaLetter);
-        localStorage.setItem('currentPage', cloudData.currentPage);
-        localStorage.setItem('wateringCurrentPage', cloudData.wateringCurrentPage);
+        localStorage.setItem('campus_greening_areas', JSON.stringify(cloudData.greenAreas));
+        localStorage.setItem('campus_greening_selected_area', cloudData.selectedArea);
+        localStorage.setItem('campus_greening_next_area_letter', cloudData.nextAreaLetter);
+        localStorage.setItem('campus_greening_current_page', cloudData.currentPage);
+        localStorage.setItem('campus_greening_watering_current_page', cloudData.wateringCurrentPage);
         
         console.log('✅ 强制同步完成');
         return true;

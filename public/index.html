@@ -685,14 +685,14 @@
                           Object.keys(greenAreas).length > 0 && 
                           typeof greenAreas === 'object';
       
-      if (!hasValidData) {
-        console.log('数据无效或为空，初始化默认区域');
-        // 如果没有保存的数据或加载失败，初始化默认区域
-        initializeDefaultAreas();
-      } else {
+      if (hasValidData) {
         console.log('数据有效，重新绘制所有区域');
         // 如果有保存的数据，重新绘制所有区域
         redrawAllAreas();
+      } else {
+        console.log('数据无效或为空，初始化默认区域');
+        // 只有在完全没有数据时才初始化默认区域
+        initializeDefaultAreas();
       }
       
       // 初始化地图状态
@@ -1792,6 +1792,44 @@
     setInterval(() => {
       saveData();
     }, 10000);
+    
+    // 添加调试快捷键
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+Shift+D: 显示调试信息
+      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        e.preventDefault();
+        console.log('=== 调试信息 ===');
+        console.log('当前数据状态:', {
+          greenAreas: Object.keys(greenAreas),
+          selectedArea: selectedArea,
+          nextAreaLetter: nextAreaLetter,
+          currentPage: currentPage,
+          wateringCurrentPage: wateringCurrentPage
+        });
+        
+        console.log('localStorage状态:', {
+          areas: localStorage.getItem('campus_greening_areas') ? '已保存' : '未保存',
+          selected: localStorage.getItem('campus_greening_selected_area') || '无',
+          letter: localStorage.getItem('campus_greening_next_area_letter') || '无',
+          page: localStorage.getItem('campus_greening_current_page') || '无',
+          wateringPage: localStorage.getItem('campus_greening_watering_current_page') || '无'
+        });
+        
+        if (window.cloudStorage) {
+          const status = cloudStorage.getStorageStatus();
+          console.log('cloudStorage状态:', status);
+        }
+        
+        alert('调试信息已输出到控制台，按F12查看');
+      }
+      
+      // Ctrl+Shift+S: 手动保存数据
+      if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+        e.preventDefault();
+        saveData();
+        alert('数据已手动保存');
+      }
+    });
     
     // 添加数据备份功能
     function backupData() {
