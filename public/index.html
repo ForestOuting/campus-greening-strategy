@@ -513,7 +513,31 @@
           wateringCurrentPage: wateringCurrentPage.toString()
         };
         
-        // 保存到localStorage
+        // 优先使用cloudStorage保存（如果可用）
+        if (window.cloudStorage) {
+          try {
+            await cloudStorage.saveToCloud(dataToSave);
+            console.log('✅ 数据已通过cloudStorage保存');
+          } catch (cloudError) {
+            console.warn('cloudStorage保存失败，使用localStorage:', cloudError);
+            // 如果cloudStorage失败，回退到localStorage
+            saveToLocalStorage();
+          }
+        } else {
+          // 如果没有cloudStorage，直接使用localStorage
+          saveToLocalStorage();
+        }
+        
+      } catch (error) {
+        console.error('保存数据失败:', error);
+        // 保存失败时也进行备份
+        backupData();
+      }
+    }
+    
+    // 保存到localStorage的辅助函数
+    function saveToLocalStorage() {
+      try {
         localStorage.setItem(STORAGE_KEYS.GREEN_AREAS, JSON.stringify(greenAreas));
         localStorage.setItem(STORAGE_KEYS.SELECTED_AREA, selectedArea || '');
         localStorage.setItem(STORAGE_KEYS.NEXT_AREA_LETTER, nextAreaLetter);
@@ -530,33 +554,20 @@
           dataSize: savedAreas ? savedAreas.length : 0
         };
         
-        console.log('数据已保存到本地存储:', {
+        console.log('数据已保存到localStorage:', {
           区域数量: Object.keys(greenAreas).length,
           选中区域: selectedArea,
           区域列表: Object.keys(greenAreas),
-          数据完整性: dataIntegrity,
           保存验证: saveVerification
         });
         
         // 如果保存失败，尝试从备份恢复
         if (!saveVerification.greenAreas && Object.keys(greenAreas).length > 0) {
-          console.error('保存失败，尝试从备份恢复...');
+          console.error('localStorage保存失败，尝试从备份恢复...');
           backupData();
         }
-        
-        // 异步保存到云端（不阻塞主流程）
-        if (window.cloudStorage) {
-          try {
-            await cloudStorage.saveToCloud(dataToSave);
-            console.log('✅ 数据已同步到云端');
-          } catch (cloudError) {
-            console.warn('云端保存失败，但本地保存成功:', cloudError);
-          }
-        }
-        
       } catch (error) {
-        console.error('保存数据失败:', error);
-        // 保存失败时也进行备份
+        console.error('localStorage保存失败:', error);
         backupData();
       }
     }
@@ -564,48 +575,44 @@
     // 从localStorage和云端加载数据
     async function loadData() {
       try {
-        // 首先尝试从云端加载数据并进行多设备合并
+        // 首先尝试从cloudStorage加载数据
         if (window.cloudStorage) {
           try {
-            // 强制同步一次，确保获取最新数据
-            await cloudStorage.syncData();
-            
             const cloudData = await cloudStorage.loadFromCloud();
             if (cloudData && cloudData.greenAreas) {
-              // 使用云端数据
+              // 使用cloudStorage数据
               greenAreas = cloudData.greenAreas;
               selectedArea = cloudData.selectedArea || '';
               nextAreaLetter = cloudData.nextAreaLetter || 'A';
               currentPage = parseInt(cloudData.currentPage) || 1;
               wateringCurrentPage = parseInt(cloudData.wateringCurrentPage) || 1;
               
-              console.log('✅ 已从云端加载数据:', {
+              console.log('✅ 已从cloudStorage加载数据:', {
                 区域数量: Object.keys(greenAreas).length,
                 选中区域: selectedArea,
                 区域列表: Object.keys(greenAreas)
               });
               
-              // 同步到localStorage
-              localStorage.setItem(STORAGE_KEYS.GREEN_AREAS, JSON.stringify(greenAreas));
-              localStorage.setItem(STORAGE_KEYS.SELECTED_AREA, selectedArea);
-              localStorage.setItem(STORAGE_KEYS.NEXT_AREA_LETTER, nextAreaLetter);
-              localStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, currentPage.toString());
-              localStorage.setItem(STORAGE_KEYS.WATERING_CURRENT_PAGE, wateringCurrentPage.toString());
-              
               return true;
             }
           } catch (cloudError) {
-            console.warn('从云端加载失败，尝试本地加载:', cloudError);
+            console.warn('从cloudStorage加载失败，尝试localStorage:', cloudError);
           }
         }
         
-        // 如果云端加载失败，从localStorage加载
+        // 如果cloudStorage加载失败，从localStorage加载
         const savedAreas = localStorage.getItem(STORAGE_KEYS.GREEN_AREAS);
         if (savedAreas) {
-          greenAreas = JSON.parse(savedAreas);
-          console.log('已从本地加载绿化区域数据:', Object.keys(greenAreas));
+          try {
+            greenAreas = JSON.parse(savedAreas);
+            console.log('已从localStorage加载绿化区域数据:', Object.keys(greenAreas));
+          } catch (parseError) {
+            console.error('解析localStorage数据失败:', parseError);
+            greenAreas = {};
+          }
         } else {
           console.log('未找到保存的绿化区域数据');
+          greenAreas = {};
         }
 
         // 加载选中的区域
@@ -615,6 +622,7 @@
           console.log('已加载选中的区域:', selectedArea);
         } else {
           console.log('未找到有效的选中区域数据');
+          selectedArea = '';
         }
 
         // 加载区域字母计数器
@@ -622,6 +630,8 @@
         if (savedNextAreaLetter) {
           nextAreaLetter = savedNextAreaLetter;
           console.log('已加载区域字母计数器:', nextAreaLetter);
+        } else {
+          nextAreaLetter = 'A';
         }
 
         // 加载分页状态
@@ -629,15 +639,19 @@
         if (savedCurrentPage) {
           currentPage = parseInt(savedCurrentPage);
           console.log('已加载当前页:', currentPage);
+        } else {
+          currentPage = 1;
         }
 
         const savedWateringCurrentPage = localStorage.getItem(STORAGE_KEYS.WATERING_CURRENT_PAGE);
         if (savedWateringCurrentPage) {
           wateringCurrentPage = parseInt(savedWateringCurrentPage);
           console.log('已加载浇水记录当前页:', wateringCurrentPage);
+        } else {
+          wateringCurrentPage = 1;
         }
 
-        console.log('数据已从本地存储加载完成');
+        console.log('数据已从localStorage加载完成');
         return true;
       } catch (error) {
         console.error('加载数据失败:', error);
