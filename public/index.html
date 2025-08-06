@@ -7,9 +7,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <script src="test-storage.js"></script>
+  <script src="multi-device-sync.js"></script>
   <script>
     console.log('🔄 index.html 开始加载...');
     console.log('test-storage.js 加载状态:', typeof window.testStorage);
+    console.log('multi-device-sync.js 加载状态:', typeof window.multiDeviceSync);
   </script>
   <script>
     tailwind.config = {
@@ -87,11 +89,12 @@
       </div>
       <div class="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
         <span id="current-date" class="text-xs md:text-sm hidden sm:block"></span>
-        <button id="data-manager-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-2 md:px-3 py-1 text-xs md:text-sm flex items-center">
-          <i class="fa fa-cloud mr-1"></i> <span class="hidden sm:inline">数据管理</span>
-        </button>
+
         <button id="refresh-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-2 md:px-3 py-1 text-xs md:text-sm flex items-center">
           <i class="fa fa-refresh mr-1"></i> <span class="hidden sm:inline">刷新状态</span>
+        </button>
+        <button id="sync-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-2 md:px-3 py-1 text-xs md:text-sm flex items-center">
+          <i class="fa fa-exchange mr-1"></i> <span class="hidden sm:inline">数据同步</span>
         </button>
       </div>
     </div>
@@ -183,6 +186,8 @@
                   <option value="2">每月 2 次</option>
                   <option value="3">每月 3 次</option>
                   <option value="4">每月 4 次</option>
+                  <option value="5">每月 5 次</option>
+                  <option value="6">每月 6 次</option>
                 </select>
               </span>
             </div>
@@ -549,6 +554,8 @@
       }
     }
 
+
+
     // 初始化
     document.addEventListener("DOMContentLoaded", function() {
       // 设置当前日期
@@ -593,6 +600,9 @@
       closeDrawingModalBtn.addEventListener('click', () => drawingPasswordModal.classList.add('hidden'));
       cancelDrawingModalBtn.addEventListener('click', () => drawingPasswordModal.classList.add('hidden'));
       confirmDrawingModalBtn.addEventListener('click', verifyDrawingPassword);
+      
+
+      
     });
 
     // 重新绘制所有区域
@@ -1536,6 +1546,147 @@
       alert('状态已刷新');
     });
     
+    // 同步按钮事件监听
+    const syncBtn = document.getElementById('sync-btn');
+    if (syncBtn) {
+      syncBtn.addEventListener('click', () => {
+        // 创建简单的同步模态框
+        const syncModal = document.createElement('div');
+        syncModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        syncModal.innerHTML = `
+          <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="p-6">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">
+                  <i class="fa fa-exchange mr-2 text-primary"></i>数据同步
+                </h3>
+                <button id="close-sync-modal" class="text-gray-400 hover:text-gray-600">
+                  <i class="fa fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                  <button id="export-sync-btn" class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition-colors">
+                    <i class="fa fa-download mr-2"></i>导出数据
+                  </button>
+                  <button id="import-sync-btn" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
+                    <i class="fa fa-upload mr-2"></i>导入数据
+                  </button>
+                </div>
+                
+                <input type="file" id="sync-import-file" accept=".json" class="hidden">
+                
+                <div id="sync-status" class="text-sm text-gray-600">
+                  点击按钮进行数据同步操作
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(syncModal);
+        
+        // 关闭按钮事件
+        const closeBtn = syncModal.querySelector('#close-sync-modal');
+        closeBtn.addEventListener('click', () => {
+          syncModal.remove();
+        });
+        
+        // 点击背景关闭
+        syncModal.addEventListener('click', (e) => {
+          if (e.target === syncModal) {
+            syncModal.remove();
+          }
+        });
+        
+        // 导出按钮事件
+        const exportBtn = syncModal.querySelector('#export-sync-btn');
+        exportBtn.addEventListener('click', () => {
+          try {
+            const exportData = {
+              greenAreas: greenAreas,
+              selectedArea: selectedArea,
+              nextAreaLetter: nextAreaLetter,
+              currentPage: currentPage,
+              wateringCurrentPage: wateringCurrentPage,
+              exportTime: new Date().toISOString(),
+              version: '1.0'
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `绿化数据_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            syncModal.querySelector('#sync-status').innerHTML = '<span class="text-green-600">✅ 数据导出成功！</span>';
+          } catch (error) {
+            syncModal.querySelector('#sync-status').innerHTML = `<span class="text-red-600">❌ 导出失败: ${error.message}</span>`;
+          }
+        });
+        
+        // 导入按钮事件
+        const importBtn = syncModal.querySelector('#import-sync-btn');
+        importBtn.addEventListener('click', () => {
+          syncModal.querySelector('#sync-import-file').click();
+        });
+        
+        // 文件选择事件
+        const fileInput = syncModal.querySelector('#sync-import-file');
+        fileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              try {
+                const importedData = JSON.parse(e.target.result);
+                
+                if (!importedData.greenAreas) {
+                  throw new Error('文件格式不正确');
+                }
+                
+                // 更新数据
+                greenAreas = importedData.greenAreas || {};
+                selectedArea = importedData.selectedArea || '';
+                nextAreaLetter = importedData.nextAreaLetter || 'A';
+                currentPage = importedData.currentPage || 1;
+                wateringCurrentPage = importedData.wateringCurrentPage || 1;
+                
+                // 保存数据
+                saveData();
+                
+                // 重新绘制界面
+                redrawAllAreas();
+                updateAreaButtons();
+                updateWateringRecords();
+                updateCalendar();
+                
+                syncModal.querySelector('#sync-status').innerHTML = '<span class="text-green-600">✅ 数据导入成功！</span>';
+                
+                setTimeout(() => {
+                  if (confirm('数据导入成功！建议刷新页面以应用新数据。是否现在刷新？')) {
+                    location.reload();
+                  }
+                }, 1000);
+                
+              } catch (error) {
+                syncModal.querySelector('#sync-status').innerHTML = `<span class="text-red-600">❌ 导入失败: ${error.message}</span>`;
+              }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+          }
+        });
+      });
+    }
+    
     // 添加数据重置功能（用于调试）
     function resetAllData() {
       if (confirm('确定要清除所有数据并重新开始吗？此操作不可恢复！')) {
@@ -1838,328 +1989,6 @@
     // BUG检查完成 - 未发现严重问题 ✅
     // ================================
     
-    // ===== 云存储数据管理功能 =====
-    
-    // 数据管理模态框
-    const dataManagerModal = document.createElement('div');
-    dataManagerModal.id = 'data-manager-modal';
-    dataManagerModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden';
-    dataManagerModal.innerHTML = `
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">
-              <i class="fa fa-cloud mr-2 text-primary"></i>数据管理
-            </h3>
-            <button id="close-data-manager" class="text-gray-400 hover:text-gray-600">
-              <i class="fa fa-times"></i>
-            </button>
-          </div>
-          
-          <div class="space-y-4">
-            <!-- 存储状态 -->
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <h4 class="font-medium text-gray-900 mb-2">存储状态</h4>
-              <div id="storage-status" class="text-sm space-y-1">
-                <!-- 状态信息将在这里显示 -->
-              </div>
-            </div>
-            
-            <!-- 数据操作 -->
-            <div class="space-y-3">
-              <button id="save-to-cloud" class="w-full bg-primary text-white py-2 px-4 rounded hover:bg-primary/90 transition-colors">
-                <i class="fa fa-cloud-upload mr-2"></i>保存到云端
-              </button>
-              
-              <button id="load-from-cloud" class="w-full bg-secondary text-white py-2 px-4 rounded hover:bg-secondary/90 transition-colors">
-                <i class="fa fa-cloud-download mr-2"></i>从云端加载
-              </button>
-              
-              <button id="create-backup" class="w-full bg-warning text-white py-2 px-4 rounded hover:bg-warning/90 transition-colors">
-                <i class="fa fa-save mr-2"></i>创建备份
-              </button>
-              
-              <button id="restore-backup" class="w-full bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700 transition-colors">
-                <i class="fa fa-undo mr-2"></i>恢复备份
-              </button>
-              
-                             <button id="sync-data" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
-                 <i class="fa fa-sync mr-2"></i>同步数据
-               </button>
-               
-               <button id="force-sync" class="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 transition-colors">
-                 <i class="fa fa-sync-alt mr-2"></i>强制同步
-               </button>
-              
-              <button id="clear-all-data" class="w-full bg-danger text-white py-2 px-4 rounded hover:bg-danger/90 transition-colors">
-                <i class="fa fa-trash mr-2"></i>清除所有数据
-              </button>
-            </div>
-            
-            <!-- 数据统计 -->
-            <div class="bg-blue-50 p-4 rounded-lg">
-              <h4 class="font-medium text-blue-900 mb-2">数据统计</h4>
-              <div id="data-stats" class="text-sm space-y-1 text-blue-800">
-                <!-- 统计信息将在这里显示 -->
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(dataManagerModal);
-    
-    // 数据管理功能
-    const dataManagerBtn = document.getElementById('data-manager-btn');
-    const closeDataManager = document.getElementById('close-data-manager');
-    const saveToCloudBtn = document.getElementById('save-to-cloud');
-    const loadFromCloudBtn = document.getElementById('load-from-cloud');
-    const createBackupBtn = document.getElementById('create-backup');
-    const restoreBackupBtn = document.getElementById('restore-backup');
-    const syncDataBtn = document.getElementById('sync-data');
-    const forceSyncBtn = document.getElementById('force-sync');
-    const clearAllDataBtn = document.getElementById('clear-all-data');
-    
-    // 显示数据管理模态框
-    dataManagerBtn.addEventListener('click', () => {
-      console.log('🔄 数据管理按钮被点击');
-      console.log('testStorage状态:', window.testStorage);
-      
-      if (!window.testStorage) {
-        console.error('❌ testStorage未初始化');
-        alert('存储系统未初始化，请刷新页面重试');
-        return;
-      }
-      
-      try {
-        updateStorageStatus();
-        updateDataStats();
-        dataManagerModal.classList.remove('hidden');
-        console.log('✅ 数据管理模态框已显示');
-      } catch (error) {
-        console.error('显示数据管理模态框失败:', error);
-        alert('打开数据管理失败: ' + error.message);
-      }
-    });
-    
-    // 关闭数据管理模态框
-    closeDataManager.addEventListener('click', () => {
-      dataManagerModal.classList.add('hidden');
-    });
-    
-    // 点击背景关闭模态框
-    dataManagerModal.addEventListener('click', (e) => {
-      if (e.target === dataManagerModal) {
-        dataManagerModal.classList.add('hidden');
-      }
-    });
-    
-    // 保存数据
-    saveToCloudBtn.addEventListener('click', () => {
-      try {
-        if (!window.testStorage) {
-          showNotification('❌ 存储系统未初始化', 'error');
-          return;
-        }
-        
-        const data = {
-          greenAreas: greenAreas,
-          selectedArea: selectedArea,
-          nextAreaLetter: nextAreaLetter,
-          currentPage: currentPage,
-          wateringCurrentPage: wateringCurrentPage
-        };
-        
-        const success = testStorage.saveData(data);
-        if (success) {
-          showNotification('✅ 数据已保存', 'success');
-          updateStorageStatus();
-        } else {
-          showNotification('❌ 保存失败', 'error');
-        }
-      } catch (error) {
-        console.error('保存失败:', error);
-        showNotification('❌ 保存失败: ' + error.message, 'error');
-      }
-    });
-    
-    // 加载数据
-    loadFromCloudBtn.addEventListener('click', () => {
-      try {
-        const data = testStorage.loadData();
-        if (data) {
-          // 更新应用数据
-          greenAreas = data.greenAreas || {};
-          selectedArea = data.selectedArea || '';
-          nextAreaLetter = data.nextAreaLetter || 'A';
-          currentPage = data.currentPage || 1;
-          wateringCurrentPage = data.wateringCurrentPage || 1;
-          
-          // 重新绘制界面
-          redrawAllAreas();
-          updateAreaButtons();
-          updateWateringRecords();
-          updateCalendar();
-          
-          showNotification('✅ 数据已加载', 'success');
-          updateStorageStatus();
-          updateDataStats();
-        } else {
-          showNotification('⚠️ 没有找到保存的数据', 'warning');
-        }
-      } catch (error) {
-        console.error('加载失败:', error);
-        showNotification('❌ 加载失败', 'error');
-      }
-    });
-    
-    // 创建备份
-    createBackupBtn.addEventListener('click', () => {
-      const success = testStorage.createBackup();
-      if (success) {
-        showNotification('✅ 备份创建成功', 'success');
-        updateStorageStatus();
-      } else {
-        showNotification('❌ 备份创建失败', 'error');
-      }
-    });
-    
-    // 恢复备份
-    restoreBackupBtn.addEventListener('click', () => {
-      const success = testStorage.restoreBackup();
-      if (success) {
-        // 重新加载数据
-        loadData();
-        redrawAllAreas();
-        updateAreaButtons();
-        updateWateringRecords();
-        updateCalendar();
-        
-        showNotification('✅ 备份恢复成功', 'success');
-        updateStorageStatus();
-        updateDataStats();
-      } else {
-        showNotification('⚠️ 没有找到备份或恢复失败', 'warning');
-      }
-    });
-    
-    // 同步数据（简化版本）
-    syncDataBtn.addEventListener('click', () => {
-      try {
-        saveData();
-        showNotification('✅ 数据同步完成', 'success');
-        updateStorageStatus();
-      } catch (error) {
-        console.error('数据同步失败:', error);
-        showNotification('❌ 数据同步失败', 'error');
-      }
-    });
-    
-    // 强制同步数据（简化版本）
-    forceSyncBtn.addEventListener('click', () => {
-      try {
-        showNotification('🔄 正在强制同步...', 'info');
-        saveData();
-        loadData();
-        redrawAllAreas();
-        updateAreaButtons();
-        updateWateringRecords();
-        updateCalendar();
-        
-        showNotification('✅ 强制同步完成', 'success');
-        updateStorageStatus();
-        updateDataStats();
-      } catch (error) {
-        console.error('强制同步失败:', error);
-        showNotification('❌ 强制同步失败', 'error');
-      }
-    });
-    
-    // 清除所有数据
-    clearAllDataBtn.addEventListener('click', () => {
-      if (confirm('确定要清除所有数据吗？此操作不可恢复！')) {
-        const success = testStorage.clearAllData();
-        if (success) {
-          // 重置应用数据
-          greenAreas = {};
-          selectedArea = '';
-          nextAreaLetter = 'A';
-          currentPage = 1;
-          wateringCurrentPage = 1;
-          
-          // 重新绘制界面
-          redrawAllAreas();
-          updateAreaButtons();
-          updateWateringRecords();
-          updateCalendar();
-          
-          showNotification('✅ 所有数据已清除', 'success');
-          updateStorageStatus();
-          updateDataStats();
-        } else {
-          showNotification('❌ 清除数据失败', 'error');
-        }
-      }
-    });
-    
-    // 更新存储状态显示
-    function updateStorageStatus() {
-      const status = testStorage.getStorageStatus();
-      const statusEl = document.getElementById('storage-status');
-      
-      statusEl.innerHTML = `
-        <div class="flex justify-between">
-          <span>数据状态:</span>
-          <span class="${status.hasData ? 'text-green-600' : 'text-red-600'}">
-            ${status.hasData ? '✅ 已保存' : '❌ 未保存'}
-          </span>
-        </div>
-        <div class="flex justify-between">
-          <span>备份状态:</span>
-          <span class="${status.hasBackup ? 'text-green-600' : 'text-red-600'}">
-            ${status.hasBackup ? '✅ 已备份' : '❌ 未备份'}
-          </span>
-        </div>
-        <div class="flex justify-between">
-          <span>设备ID:</span>
-          <span class="text-gray-600 text-xs">${status.deviceId}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>最后修改:</span>
-          <span class="text-gray-600 text-xs">${status.lastModified}</span>
-        </div>
-      `;
-    }
-    
-    // 更新数据统计
-    function updateDataStats() {
-      const statsEl = document.getElementById('data-stats');
-      const areaCount = Object.keys(greenAreas).length;
-      const totalWateringRecords = Object.values(greenAreas).reduce((total, area) => {
-        return total + (area.wateringRecords ? area.wateringRecords.length : 0);
-      }, 0);
-      
-      statsEl.innerHTML = `
-        <div class="flex justify-between">
-          <span>绿化区域:</span>
-          <span class="font-medium">${areaCount} 个</span>
-        </div>
-        <div class="flex justify-between">
-          <span>浇水记录:</span>
-          <span class="font-medium">${totalWateringRecords} 条</span>
-        </div>
-        <div class="flex justify-between">
-          <span>选中区域:</span>
-          <span class="font-medium">${selectedArea || '无'}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>数据大小:</span>
-          <span class="font-medium">${JSON.stringify(greenAreas).length} 字节</span>
-        </div>
-      `;
-    }
-    
     // 显示通知
     function showNotification(message, type = 'info') {
       const notification = document.createElement('div');
@@ -2178,10 +2007,6 @@
       }, 3000);
     }
     
-    // 初始化时更新状态
-    updateStorageStatus();
-    updateDataStats();
-    
     // 检查存储系统初始化
     console.log('页面初始化完成');
     console.log('testStorage状态:', window.testStorage);
@@ -2191,7 +2016,7 @@
       console.error('❌ 存储系统未初始化');
     }
     
-    // 云存储功能集成完成 ✅
+    // 数据同步功能集成完成 ✅
     // ================================
   </script>
 </body>

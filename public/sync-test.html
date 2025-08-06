@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>多设备同步功能测试</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="multi-device-sync.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+      <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">
+        <i class="fa fa-sync mr-3 text-blue-600"></i>
+        多设备同步功能测试
+      </h1>
+      
+      <!-- 状态显示 -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">同步状态</h2>
+        <div id="sync-status" class="space-y-2 text-sm">
+          <!-- 状态信息将在这里显示 -->
+        </div>
+      </div>
+      
+      <!-- 操作按钮 -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">同步操作</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button id="export-data" class="bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors">
+            <i class="fa fa-download mr-2"></i>导出数据文件
+          </button>
+          
+          <button id="import-data" class="bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+            <i class="fa fa-upload mr-2"></i>导入数据文件
+          </button>
+        </div>
+        
+        <input type="file" id="import-file-input" accept=".json" class="hidden">
+      </div>
+      
+      <!-- 结果显示 -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">操作结果</h2>
+        <div id="result-log" class="bg-gray-50 p-4 rounded-md max-h-64 overflow-y-auto text-sm font-mono">
+          <!-- 操作日志将在这里显示 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 更新状态显示
+    function updateSyncStatus() {
+      const statusEl = document.getElementById('sync-status');
+      if (window.multiDeviceSync) {
+        const status = multiDeviceSync.getSyncStatus();
+        statusEl.innerHTML = `
+          <div class="flex justify-between">
+            <span>同步状态:</span>
+            <span class="${status.hasData ? 'text-green-600' : 'text-red-600'}">
+              ${status.hasData ? '✅ 已同步' : '❌ 未同步'}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span>设备ID:</span>
+            <span class="text-gray-600">${status.deviceId}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>版本:</span>
+            <span class="text-gray-600">${status.version}</span>
+          </div>
+        `;
+      } else {
+        statusEl.innerHTML = '<div class="text-red-600">❌ 多设备同步系统未初始化</div>';
+      }
+    }
+    
+    // 添加日志
+    function addLog(message, type = 'info') {
+      const logEl = document.getElementById('result-log');
+      const timestamp = new Date().toLocaleTimeString();
+      const colorClass = type === 'success' ? 'text-green-600' : 
+                        type === 'error' ? 'text-red-600' : 
+                        type === 'warning' ? 'text-yellow-600' : 'text-blue-600';
+      
+      logEl.innerHTML += `<div class="${colorClass}">[${timestamp}] ${message}</div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    
+    // 事件监听器
+    document.getElementById('export-data').addEventListener('click', () => {
+      try {
+        const testData = {
+          testArea: '测试区域',
+          plantCount: 10,
+          timestamp: Date.now()
+        };
+        
+        multiDeviceSync.saveData(testData);
+        const success = multiDeviceSync.exportData();
+        if (success) {
+          addLog('✅ 数据文件导出成功', 'success');
+        } else {
+          addLog('❌ 数据文件导出失败', 'error');
+        }
+      } catch (error) {
+        addLog('❌ 导出失败: ' + error.message, 'error');
+      }
+    });
+    
+    document.getElementById('import-data').addEventListener('click', () => {
+      document.getElementById('import-file-input').click();
+    });
+    
+    document.getElementById('import-file-input').addEventListener('change', async (event) => {
+      try {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        addLog('🔄 正在导入数据文件...', 'info');
+        const importedData = await multiDeviceSync.importData(file);
+        
+        if (importedData && importedData.data) {
+          addLog('✅ 数据文件导入成功', 'success');
+          addLog(`📅 导入时间: ${new Date(importedData.exportDate).toLocaleString()}`, 'info');
+          addLog(`📱 来源设备: ${importedData.exportDeviceId}`, 'info');
+          updateSyncStatus();
+        } else {
+          addLog('❌ 数据文件格式无效', 'error');
+        }
+      } catch (error) {
+        addLog('❌ 导入失败: ' + error.message, 'error');
+      } finally {
+        event.target.value = '';
+      }
+    });
+    
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      addLog('🚀 多设备同步测试页面已加载', 'info');
+      updateSyncStatus();
+    });
+  </script>
+</body>
+</html> 

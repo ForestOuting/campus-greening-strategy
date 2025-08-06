@@ -45,6 +45,17 @@ try {
     }
   }
   
+  // 验证多设备同步文件
+  const syncFiles = ['multi-device-sync.js', 'sync-test.html'];
+  for (const file of syncFiles) {
+    const filePath = path.join(distPath, file);
+    if (fs.existsSync(filePath)) {
+      console.log(`✅ 多设备同步文件已包含: ${file}`);
+    } else {
+      console.log(`⚠️ 多设备同步文件缺失: ${file}`);
+    }
+  }
+  
   // 验证结果
   const distItems = fs.readdirSync(distPath);
   console.log('dist目录内容:', distItems);

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>最终功能测试</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="test-storage.js"></script>
+  <script src="multi-device-sync.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <!-- 头部 -->
+  <header class="bg-gradient-to-r from-primary to-secondary text-white shadow-lg">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <img src="assets/ShanDa.png" alt="Logo" class="h-10 flex-shrink-0">
+        <h1 class="text-2xl font-bold font-stzhongsong truncate md:text-2xl text-lg">最终功能测试</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要内容区 -->
+  <main class="flex-grow container mx-auto px-4 py-6">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8 text-center">功能验证测试</h1>
+      
+      <!-- 测试说明 -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <h2 class="text-lg font-semibold text-blue-900 mb-2">测试说明</h2>
+        <p class="text-blue-800 text-sm">
+          此页面用于验证删除数据管理功能后的系统状态。主要测试：
+          1. 主页面数据同步按钮功能
+          2. 独立数据同步页面功能
+          3. 浇水频率选项（每月5次和6次）
+        </p>
+      </div>
+      
+      <!-- 测试项目 -->
+      <div class="grid md:grid-cols-2 gap-6">
+        
+        <!-- 主页面测试 -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h3 class="text-xl font-semibold mb-4 text-green-700">
+            <i class="fa fa-home mr-2"></i>主页面测试
+          </h3>
+          <p class="text-gray-600 mb-4">测试主页面的数据同步按钮功能。</p>
+          
+          <a href="index.html" target="_blank" class="inline-block bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+            <i class="fa fa-external-link mr-2"></i>打开主页面
+          </a>
+          
+          <div class="mt-3 text-sm text-gray-600">
+            <p>✅ 右上角应该有"数据同步"按钮</p>
+            <p>✅ 点击后应该显示同步模态框</p>
+            <p>✅ 可以导出和导入数据文件</p>
+          </div>
+        </div>
+        
+        <!-- 独立同步页面测试 -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h3 class="text-xl font-semibold mb-4 text-blue-700">
+            <i class="fa fa-exchange mr-2"></i>独立同步页面
+          </h3>
+          <p class="text-gray-600 mb-4">测试独立的数据同步页面功能。</p>
+          
+          <a href="simple-sync.html" target="_blank" class="inline-block bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+            <i class="fa fa-external-link mr-2"></i>打开同步页面
+          </a>
+          
+          <div class="mt-3 text-sm text-gray-600">
+            <p>✅ 页面应该正常加载</p>
+            <p>✅ 导出和导入按钮应该工作</p>
+            <p>✅ 数据预览应该显示</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 功能验证 -->
+      <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <h3 class="text-xl font-semibold mb-4">功能验证清单</h3>
+        
+        <div class="space-y-4">
+          <div class="flex items-center">
+            <input type="checkbox" id="check1" class="mr-3">
+            <label for="check1" class="text-sm">主页面右上角有"数据同步"按钮</label>
+          </div>
+          
+          <div class="flex items-center">
+            <input type="checkbox" id="check2" class="mr-3">
+            <label for="check2" class="text-sm">点击数据同步按钮显示模态框</label>
+          </div>
+          
+          <div class="flex items-center">
+            <input type="checkbox" id="check3" class="mr-3">
+            <label for="check3" class="text-sm">可以导出数据文件</label>
+          </div>
+          
+          <div class="flex items-center">
+            <input type="checkbox" id="check4" class="mr-3">
+            <label for="check4" class="text-sm">可以导入数据文件</label>
+          </div>
+          
+          <div class="flex items-center">
+            <input type="checkbox" id="check5" class="mr-3">
+            <label for="check5" class="text-sm">独立同步页面正常工作</label>
+          </div>
+          
+          <div class="flex items-center">
+            <input type="checkbox" id="check6" class="mr-3">
+            <label for="check6" class="text-sm">浇水频率包含每月5次和6次选项</label>
+          </div>
+          
+          <div class="flex items-center">
+            <input type="checkbox" id="check7" class="mr-3">
+            <label for="check7" class="text-sm">没有数据管理相关的错误</label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 测试结果 -->
+      <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <h3 class="text-xl font-semibold mb-4">测试结果</h3>
+        <div id="test-result" class="text-sm">
+          <p class="text-blue-600">请完成上述功能验证，然后点击下方按钮记录结果。</p>
+        </div>
+        
+        <div class="mt-4 space-x-3">
+          <button id="success-btn" class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition-colors">
+            <i class="fa fa-check mr-2"></i>所有功能正常
+          </button>
+          <button id="issue-btn" class="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-colors">
+            <i class="fa fa-exclamation-triangle mr-2"></i>发现问题
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // 测试结果处理
+    document.getElementById('success-btn').addEventListener('click', () => {
+      document.getElementById('test-result').innerHTML = `
+        <div class="text-green-600">
+          <p>✅ 恭喜！所有功能测试通过</p>
+          <p>✅ 数据管理功能已成功删除</p>
+          <p>✅ 数据同步功能正常工作</p>
+          <p>✅ 系统清理完成</p>
+        </div>
+      `;
+    });
+    
+    document.getElementById('issue-btn').addEventListener('click', () => {
+      document.getElementById('test-result').innerHTML = `
+        <div class="text-red-600">
+          <p>❌ 发现问题，请检查：</p>
+          <p>1. 浏览器控制台是否有错误</p>
+          <p>2. 数据同步按钮是否显示</p>
+          <p>3. 模态框是否正常弹出</p>
+          <p>4. 文件导入导出是否工作</p>
+        </div>
+      `;
+    });
+    
+    // 页面加载完成
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 最终功能测试页面已加载');
+      console.log('✅ 数据管理功能已删除');
+      console.log('✅ 数据同步功能保留');
+      console.log('✅ 系统清理完成');
+    });
+  </script>
+</body>
+</html> 

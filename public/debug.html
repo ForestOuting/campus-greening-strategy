@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>调试页面</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="test-storage.js"></script>
+  <script src="multi-device-sync.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-center">调试页面</h1>
+    
+    <!-- 测试按钮 -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">测试按钮</h2>
+      <button id="test-btn" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
+        测试按钮点击
+      </button>
+    </div>
+    
+    <!-- 状态显示 -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">系统状态</h2>
+      <div id="status-display" class="space-y-2 text-sm">
+        <!-- 状态信息将在这里显示 -->
+      </div>
+    </div>
+    
+    <!-- 控制台输出 -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold mb-4">控制台输出</h2>
+      <div id="console-output" class="bg-gray-50 p-4 rounded-md max-h-64 overflow-y-auto text-sm font-mono">
+        <!-- 控制台输出将在这里显示 -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 模拟控制台输出
+    const originalConsoleLog = console.log;
+    const originalConsoleError = console.error;
+    const consoleOutput = document.getElementById('console-output');
+    
+    function addConsoleOutput(message, type = 'log') {
+      const timestamp = new Date().toLocaleTimeString();
+      const colorClass = type === 'error' ? 'text-red-600' : 'text-blue-600';
+      consoleOutput.innerHTML += `<div class="${colorClass}">[${timestamp}] ${message}</div>`;
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+    
+    console.log = function(...args) {
+      originalConsoleLog.apply(console, args);
+      addConsoleOutput(args.join(' '), 'log');
+    };
+    
+    console.error = function(...args) {
+      originalConsoleError.apply(console, args);
+      addConsoleOutput(args.join(' '), 'error');
+    };
+    
+    // 更新状态显示
+    function updateStatus() {
+      const statusEl = document.getElementById('status-display');
+      const testStorageStatus = window.testStorage ? '✅ 已加载' : '❌ 未加载';
+      const multiDeviceSyncStatus = window.multiDeviceSync ? '✅ 已加载' : '❌ 未加载';
+      
+      statusEl.innerHTML = `
+        <div class="flex justify-between">
+          <span>testStorage:</span>
+          <span class="${window.testStorage ? 'text-green-600' : 'text-red-600'}">${testStorageStatus}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>multiDeviceSync:</span>
+          <span class="${window.multiDeviceSync ? 'text-green-600' : 'text-red-600'}">${multiDeviceSyncStatus}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>页面加载时间:</span>
+          <span class="text-gray-600">${new Date().toLocaleString()}</span>
+        </div>
+      `;
+    }
+    
+    // 测试按钮点击事件
+    document.getElementById('test-btn').addEventListener('click', () => {
+      console.log('🔄 测试按钮被点击');
+      
+      if (window.testStorage) {
+        console.log('✅ testStorage 可用');
+        const status = testStorage.getStorageStatus();
+        console.log('testStorage 状态:', status);
+      } else {
+        console.error('❌ testStorage 不可用');
+      }
+      
+      if (window.multiDeviceSync) {
+        console.log('✅ multiDeviceSync 可用');
+        const status = multiDeviceSync.getSyncStatus();
+        console.log('multiDeviceSync 状态:', status);
+      } else {
+        console.error('❌ multiDeviceSync 不可用');
+      }
+    });
+    
+    // 页面加载完成
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 调试页面已加载');
+      updateStatus();
+      
+      // 延迟检查状态
+      setTimeout(() => {
+        console.log('🔄 延迟检查系统状态...');
+        updateStatus();
+      }, 1000);
+    });
+  </script>
+</body>
+</html> 
