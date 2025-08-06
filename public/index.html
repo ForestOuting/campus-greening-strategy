@@ -90,12 +90,12 @@
       <div class="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
         <span id="current-date" class="text-xs md:text-sm hidden sm:block"></span>
 
-        <button id="refresh-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-2 md:px-3 py-1 text-xs md:text-sm flex items-center">
-          <i class="fa fa-refresh mr-1"></i> <span class="hidden sm:inline">刷新状态</span>
-        </button>
-        <button id="sync-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-2 md:px-3 py-1 text-xs md:text-sm flex items-center">
-          <i class="fa fa-exchange mr-1"></i> <span class="hidden sm:inline">数据同步</span>
-        </button>
+                    <button id="refresh-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-2 md:px-3 py-1 text-xs md:text-sm flex items-center" title="刷新绿化状态数据" aria-label="刷新状态">
+              <i class="fa fa-refresh mr-1"></i> <span class="hidden sm:inline">刷新状态</span>
+            </button>
+            <button id="sync-btn" class="bg-white/20 hover:bg-white/30 transition-colors rounded px-2 md:px-3 py-1 text-xs md:text-sm flex items-center" title="同步绿化数据" aria-label="数据同步">
+              <i class="fa fa-exchange mr-1"></i> <span class="hidden sm:inline">数据同步</span>
+            </button>
       </div>
     </div>
   </header>
@@ -113,15 +113,15 @@
             </span>
           </h2>
           <div class="flex space-x-2">
-            <button id="draw-area" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded flex items-center">
+            <button id="draw-area" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded flex items-center" title="开始绘制新的绿化区域" aria-label="绘制新区域">
               <i class="fa fa-pencil"></i>
               <span class="ml-1 hidden sm:inline">绘制新区域</span>
             </button>
-            <button id="cancel-drawing" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded hidden">
+            <button id="cancel-drawing" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded hidden" title="取消绘制操作" aria-label="取消绘制">
               <i class="fa fa-times"></i>
               <span class="ml-1 hidden sm:inline">取消绘制</span>
             </button>
-            <button id="confirm-drawing" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded hidden">
+            <button id="confirm-drawing" class="bg-gray-100 hover:bg-gray-200 transition-colors p-1 rounded hidden" title="确认绘制区域" aria-label="确定区域">
               <i class="fa fa-check"></i>
               <span class="ml-1 hidden sm:inline">确定区域</span>
             </button>
@@ -181,7 +181,7 @@
             <div class="flex justify-between">
               <span class="text-sm text-gray-500">浇水频率:</span>
               <span class="text-sm font-medium">
-                <select id="watering-frequency" class="bg-white border border-gray-300 rounded px-2 py-1 text-sm">
+                <select id="watering-frequency" class="bg-white border border-gray-300 rounded px-2 py-1 text-sm" title="选择浇水频率" aria-label="浇水频率选择">
                   <option value="0">每月 0 次</option>
                   <option value="1">每月 1 次</option>
                   <option value="2">每月 2 次</option>
@@ -205,10 +205,10 @@
         
                 <!-- 操作按钮 - 改为橙色 -->
         <div class="flex space-x-3">
-          <button id="record-watering" class="flex-1 bg-warning hover:bg-warning/90 transition-colors text-white py-2 px-4 rounded flex items-center justify-center">
+          <button id="record-watering" class="flex-1 bg-warning hover:bg-warning/90 transition-colors text-white py-2 px-4 rounded flex items-center justify-center" title="记录当前区域的浇水信息" aria-label="记录浇水">
             <i class="fa fa-check-circle mr-1"></i> 记录浇水
           </button>
-          <button id="delete-area" class="bg-danger hover:bg-danger/90 transition-colors text-white py-2 px-4 rounded flex items-center justify-center">
+          <button id="delete-area" class="bg-danger hover:bg-danger/90 transition-colors text-white py-2 px-4 rounded flex items-center justify-center" title="删除当前选中的绿化区域" aria-label="删除区域">
             <i class="fa fa-trash mr-1"></i> 删除区域
           </button>
         </div>
@@ -296,18 +296,18 @@
       
       <form id="watering-form">
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">区域</label>
-          <input type="text" id="modal-area" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50" readonly>
+          <label for="modal-area" class="block text-sm font-medium text-gray-700 mb-1">区域</label>
+          <input type="text" id="modal-area" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50" readonly aria-label="选中的绿化区域名称">
         </div>
         
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">日期</label>
-          <input type="text" id="modal-date" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50" readonly>
+          <label for="modal-date" class="block text-sm font-medium text-gray-700 mb-1">日期</label>
+          <input type="text" id="modal-date" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50" readonly aria-label="浇水日期">
         </div>
         
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">负责人<span class="text-danger">*</span></label>
-          <input type="text" id="modal-person" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50" placeholder="输入负责人姓名" required>
+          <label for="modal-person" class="block text-sm font-medium text-gray-700 mb-1">负责人<span class="text-danger">*</span></label>
+          <input type="text" id="modal-person" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-warning/50" placeholder="输入负责人姓名" required aria-label="浇水负责人姓名">
         </div>
         
         <div class="mb-4">
@@ -1510,6 +1510,11 @@
 
     // 刷新状态
     refreshBtn.addEventListener('click', () => {
+      // 清除本地存储
+      if (window.testStorage) {
+        testStorage.clearAllData();
+      }
+      
       // 从JSON文件重新加载数据
       loadFromJsonFile().then(success => {
         if (success) {
@@ -1518,7 +1523,7 @@
           // 更新界面
           updateAreaButtons();
           updateCalendar();
-          alert('✅ 状态已刷新！已从 green-area.json 文件重新加载数据。');
+          alert('✅ 状态已刷新！已清除本地存储并从 green-area.json 文件重新加载数据。');
         } else {
           alert('❌ 刷新失败！请检查 green-area.json 文件是否存在且格式正确。');
         }
