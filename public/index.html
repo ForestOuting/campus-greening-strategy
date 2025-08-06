@@ -125,6 +125,7 @@
               <i class="fa fa-check"></i>
               <span class="ml-1 hidden sm:inline">确定区域</span>
             </button>
+
           </div>
         </div>
         
@@ -526,33 +527,80 @@
     // 加载数据
     function loadData() {
       try {
-              if (window.testStorage) {
-        const data = testStorage.loadData();
-        if (data) {
-          greenAreas = data.greenAreas || {};
-          selectedArea = data.selectedArea || '';
-          nextAreaLetter = data.nextAreaLetter || 'A';
-          currentPage = data.currentPage || 1;
-          wateringCurrentPage = data.wateringCurrentPage || 1;
-          
-          console.log('✅ 数据加载成功');
-          return true;
+        // 首先尝试从本地存储加载数据
+        if (window.testStorage) {
+          const data = testStorage.loadData();
+          if (data && Object.keys(data.greenAreas || {}).length > 0) {
+            greenAreas = data.greenAreas || {};
+            selectedArea = data.selectedArea || '';
+            nextAreaLetter = data.nextAreaLetter || 'A';
+            currentPage = data.currentPage || 1;
+            wateringCurrentPage = data.wateringCurrentPage || 1;
+            
+            // 检查本地存储的数据是否包含records
+            let hasRecords = false;
+            Object.keys(greenAreas).forEach(areaName => {
+              if (greenAreas[areaName].records && greenAreas[areaName].records.length > 0) {
+                hasRecords = true;
+              }
+            });
+            
+            if (!hasRecords) {
+              console.log('⚠️ 本地存储数据缺少records，从JSON文件重新加载');
+              return loadFromJsonFile();
+            }
+            
+            console.log('✅ 从本地存储加载数据成功');
+            return Promise.resolve(true);
+          }
         }
-      }
         
-        console.log('⚠️ 没有找到保存的数据，使用默认值');
-        greenAreas = {};
-        selectedArea = '';
-        nextAreaLetter = 'A';
-        currentPage = 1;
-        wateringCurrentPage = 1;
+        // 如果本地存储没有数据，从JSON文件加载
+        console.log('⚠️ 本地存储无数据，从JSON文件加载');
+        return loadFromJsonFile();
         
-        return false;
       } catch (error) {
         console.error('加载数据失败:', error);
-        return false;
+        return Promise.resolve(false);
       }
     }
+
+    // 从JSON文件加载数据
+    function loadFromJsonFile() {
+      return fetch('assets/green-area.json')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data && data.greenAreas) {
+            greenAreas = data.greenAreas;
+            selectedArea = data.selectedArea || '';
+            nextAreaLetter = data.nextAreaLetter || 'A';
+            currentPage = data.currentPage || 1;
+            wateringCurrentPage = data.wateringCurrentPage || 1;
+            
+            // 立即保存到本地存储
+            saveData();
+            
+            console.log('✅ 从JSON文件加载数据成功并保存到本地存储');
+            return true;
+          } else {
+            console.log('⚠️ JSON文件数据格式无效');
+            return false;
+          }
+        })
+        .catch(error => {
+          console.error('加载JSON文件失败:', error);
+          return false;
+        });
+    }
+
+
+
+
 
 
 
@@ -564,24 +612,41 @@
       currentDateEl.textContent = now.toLocaleDateString('zh-CN', options);
       
       // 尝试加载保存的数据
-      const dataLoaded = loadData();
-      
-      // 验证加载的数据是否有效
-      const hasValidData = dataLoaded && 
-                          Object.keys(greenAreas).length > 0 && 
-                          typeof greenAreas === 'object';
-      
-      if (hasValidData) {
-        console.log('数据有效，重新绘制所有区域');
-        redrawAllAreas();
-      } else {
-        console.log('数据无效或为空，初始化默认区域');
-        initializeDefaultAreas();
-      }
-      
-      // 初始化地图状态
-      updateAreaButtons();
-      updateCalendar();
+      loadData().then(dataLoaded => {
+        // 验证加载的数据是否有效
+        const hasValidData = dataLoaded && 
+                            Object.keys(greenAreas).length > 0 && 
+                            typeof greenAreas === 'object';
+        
+        if (hasValidData) {
+          console.log('数据有效，重新绘制所有区域');
+          redrawAllAreas();
+        } else {
+          console.log('数据无效或为空，从JSON文件加载数据');
+          // 如果本地存储没有数据，从JSON文件加载
+          loadFromJsonFile().then(success => {
+            if (success) {
+              console.log('从JSON文件加载数据成功，重新绘制所有区域');
+              redrawAllAreas();
+            } else {
+              console.log('无法加载数据，使用空数据初始化');
+              greenAreas = {};
+              selectedArea = '';
+              nextAreaLetter = 'A';
+              currentPage = 1;
+              wateringCurrentPage = 1;
+            }
+            // 初始化地图状态
+            updateAreaButtons();
+            updateCalendar();
+          });
+          return; // 提前返回，避免重复初始化
+        }
+        
+        // 初始化地图状态
+        updateAreaButtons();
+        updateCalendar();
+      });
       
       // 添加分页事件监听
       prevPageBtn.addEventListener('click', goToPrevPage);
@@ -600,9 +665,6 @@
       closeDrawingModalBtn.addEventListener('click', () => drawingPasswordModal.classList.add('hidden'));
       cancelDrawingModalBtn.addEventListener('click', () => drawingPasswordModal.classList.add('hidden'));
       confirmDrawingModalBtn.addEventListener('click', verifyDrawingPassword);
-      
-
-      
     });
 
     // 重新绘制所有区域
@@ -663,100 +725,7 @@
       }
     }
 
-    // 初始化三个绿化区域
-    function initializeDefaultAreas() {
-      // 固定日期，便于演示
-      // 区域A - 正常状态
-      greenAreas['图书馆草坪'] = {
-        lastWatered: '2025-07-09', // 上次浇水
-        wateringFrequency: "2", // 每月2次
-        path: "M100,200 L200,200 L200,300 L100,300 Z", 
-        records: [
-          { date: '2025-07-09 09:30', person: "张明", notes: "正常浇水" },
-          { date: '2024-06-01 10:45', person: "李强", notes: "常规维护" }
-        ]
-      };
-      
-      // 区域B - 需要浇水状态
-      greenAreas['教学楼前花坛'] = {
-        lastWatered: '2025-07-25', // 上次浇水
-        wateringFrequency: "4", // 每月4次
-        path: "M300,200 L400,200 L400,300 L300,300 Z", 
-        records: [
-          { date: '2025-07-25 14:20', person: "王芳", notes: "部分区域需要更多水" }
-        ]
-      };
-      
-      // 区域C - 已逾期状态
-      greenAreas['学生宿舍绿化带'] = {
-        lastWatered: '2025-07-10', // 上次浇水
-        wateringFrequency: "3", // 每月3次
-        path: "M500,200 L600,200 L600,300 L500,300 Z",
-        records: [
-          { date: '2025-07-10 16:15', person: "赵伟", notes: "全面浇水" }
-        ]
-      };
-      
-      // 绘制初始区域
-      Object.entries(greenAreas).forEach(([areaName, areaData]) => {
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", areaData.path);
-        path.setAttribute("fill", "rgba(139, 195, 74, 0.4)");
-        path.setAttribute("stroke", "#4CAF50");
-        path.setAttribute("stroke-width", "2");
-        path.setAttribute("class", "area-path");
-        path.setAttribute("id", `area-${areaName}`);
-        path.addEventListener('click', () => selectArea(areaName));
-        schoolMap.insertBefore(path, tempPath);
-      });
 
-      // 初始化时为所有区域设置正确的颜色
-      Object.keys(greenAreas).forEach(areaName => {
-        // 计算区域状态
-        const areaData = greenAreas[areaName];
-        const lastWateredDate = new Date(areaData.lastWatered);
-        const now = new Date();
-        let nextWateringDate = new Date(lastWateredDate);
-        if (parseInt(areaData.wateringFrequency) > 0) {
-          const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-          const interval = Math.round(daysInMonth / parseInt(areaData.wateringFrequency));
-          nextWateringDate = new Date(lastWateredDate.getTime() + interval * 24 * 60 * 60 * 1000);
-        } else {
-          nextWateringDate = null;
-        }
-        let statusText;
-        if (parseInt(areaData.wateringFrequency) === 0) {
-          statusText = '正常';
-        } else {
-          // 只比较日期部分
-          const nextDateStr = nextWateringDate ? nextWateringDate.toISOString().split('T')[0] : null;
-          const todayStr = now.toISOString().split('T')[0];
-          
-          // 计算前一天和后一天的日期
-          const today = new Date(todayStr);
-          const yesterday = new Date(today);
-          yesterday.setDate(today.getDate() - 1);
-          const yesterdayStr = yesterday.toISOString().split('T')[0];
-          
-          const tomorrow = new Date(today);
-          tomorrow.setDate(today.getDate() + 1);
-          const tomorrowStr = tomorrow.toISOString().split('T')[0];
-          
-          if (nextDateStr < todayStr) {
-            statusText = '已逾期';
-          } else if (nextDateStr === yesterdayStr || nextDateStr === todayStr || nextDateStr === tomorrowStr) {
-            // 前一天、今天、后一天都算作需要浇水
-            statusText = '需要浇水';
-          } else {
-            statusText = '正常';
-          }
-        }
-        updateAreaColor(areaName, statusText);
-      });
-      
-      // 默认选择第一个区域并更新颜色
-      selectArea(Object.keys(greenAreas)[0]);
-    }
 
     // 更新区域按钮
     function updateAreaButtons() {
@@ -986,7 +955,7 @@
             <div class="flex justify-between text-sm">
               <span class="font-medium">${record.date}</span>
               <span class="text-gray-500">${record.person || '管理员'}</span>
-            </div>
+              </div>
             <p class="text-xs text-gray-500 mt-1">${record.notes}</p>
           `;
           wateringRecords.appendChild(recordEl);
@@ -1541,9 +1510,19 @@
 
     // 刷新状态
     refreshBtn.addEventListener('click', () => {
-      updateAreaDetails();
-      updateCalendar();
-      alert('状态已刷新');
+      // 从JSON文件重新加载数据
+      loadFromJsonFile().then(success => {
+        if (success) {
+          // 重新绘制所有区域
+          redrawAllAreas();
+          // 更新界面
+          updateAreaButtons();
+          updateCalendar();
+          alert('✅ 状态已刷新！已从 green-area.json 文件重新加载数据。');
+        } else {
+          alert('❌ 刷新失败！请检查 green-area.json 文件是否存在且格式正确。');
+        }
+      });
     });
     
     // 同步按钮事件监听
@@ -1900,17 +1879,7 @@
       return false;
     }
     
-    // 页面加载时尝试从备份恢复
-    if (!hasValidData) {
-      console.log('尝试从备份恢复数据...');
-      if (restoreFromBackup()) {
-        console.log('从备份恢复数据成功，重新绘制区域');
-        redrawAllAreas();
-      } else {
-        console.log('备份恢复失败，使用默认数据');
-        initializeDefaultAreas();
-      }
-    }
+
     
     // 定期备份数据（每60秒）
     setInterval(() => {
