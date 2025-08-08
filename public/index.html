@@ -273,6 +273,14 @@
           </button>
         </div>
       </div>
+      
+      <!-- 浇水说明 -->
+      <div class="mt-4 pt-3 border-t border-gray-100">
+        <p class="text-xs text-gray-500 italic flex items-center">
+          <i class="fa fa-info-circle mr-1 text-blue-400"></i>
+          注：11月至翌年3月中旬总浇水两次（封冻水、返青水）
+        </p>
+      </div>
     </div>
   </main>
 
@@ -706,14 +714,21 @@
         } else {
           const nextDateStr = nextWateringDate ? nextWateringDate.toISOString().split('T')[0] : null;
           const todayStr = now.toISOString().split('T')[0];
+          
+          // 计算天数差
+          const today = new Date(todayStr);
+          const nextDate = nextDateStr ? new Date(nextDateStr) : null;
+          const daysDiff = nextDate ? Math.floor((nextDate - today) / (1000 * 60 * 60 * 24)) : 0;
+          
           if (nextDateStr < todayStr) {
             statusText = '已逾期';
-          } else if (nextDateStr === todayStr) {
+          } else if (daysDiff <= 3 && daysDiff >= -1) { // 前后3天内都算需要浇水
             statusText = '需要浇水';
           } else {
             statusText = '正常';
           }
         }
+        console.log(`区域 ${areaName} 状态: ${statusText}, 浇水频率: ${areaData.wateringFrequency}, 上次浇水: ${areaData.lastWatered}`);
         updateAreaColor(areaName, statusText);
       });
 
@@ -771,14 +786,14 @@
       // 移除所有区域的高亮状态
       document.querySelectorAll('.area-path').forEach(path => {
         path.classList.remove('selected-area');
-        path.style.stroke = '#4CAF50';
+        // 不重置stroke颜色，保持状态颜色
       });
       
-      // 高亮选中的区域 - 改为橙色
+      // 高亮选中的区域 - 使用更粗的边框
       const selectedPath = document.getElementById(`area-${area}`);
       if (selectedPath) {
         selectedPath.classList.add('selected-area');
-        selectedPath.style.stroke = '#FF7D00'; // 改为橙色
+        selectedPath.setAttribute('stroke-width', '4'); // 增加边框宽度表示选中
       }
     }
 
@@ -892,7 +907,10 @@
     // 更新区域颜色
     function updateAreaColor(areaName, status) {
       const path = document.getElementById(`area-${areaName}`);
-      if (!path) return;
+      if (!path) {
+        console.log(`❌ 找不到区域路径: area-${areaName}`);
+        return;
+      }
       
       let fillColor, strokeColor;
       switch(status) {
@@ -915,6 +933,7 @@
       
       path.setAttribute('fill', fillColor);
       path.setAttribute('stroke', strokeColor);
+      console.log(`✅ 区域 ${areaName} 颜色已更新为: ${status} (${strokeColor})`);
     }
     
     // 更新浇水记录（带分页）
@@ -1523,7 +1542,7 @@
           // 更新界面
           updateAreaButtons();
           updateCalendar();
-          alert('✅ 状态已刷新！已清除本地存储并从 green-area.json 文件重新加载数据。');
+          alert('✅ 状态已刷新！已从 green-area.json 文件重新加载数据并立即应用。');
         } else {
           alert('❌ 刷新失败！请检查 green-area.json 文件是否存在且格式正确。');
         }
@@ -1652,13 +1671,12 @@
                 updateWateringRecords();
                 updateCalendar();
                 
-                syncModal.querySelector('#sync-status').innerHTML = '<span class="text-green-600">✅ 数据导入成功！</span>';
+                syncModal.querySelector('#sync-status').innerHTML = '<span class="text-green-600">✅ 数据导入成功！新数据已立即应用。</span>';
                 
+                // 关闭模态框
                 setTimeout(() => {
-                  if (confirm('数据导入成功！建议刷新页面以应用新数据。是否现在刷新？')) {
-                    location.reload();
-                  }
-                }, 1000);
+                  syncModal.remove();
+                }, 2000);
                 
               } catch (error) {
                 syncModal.querySelector('#sync-status').innerHTML = `<span class="text-red-600">❌ 导入失败: ${error.message}</span>`;
