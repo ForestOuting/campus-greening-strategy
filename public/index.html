@@ -654,6 +654,11 @@
         // 初始化地图状态
         updateAreaButtons();
         updateCalendar();
+        
+        // 强制刷新所有区域状态，确保颜色显示正确
+        setTimeout(() => {
+          refreshAllAreaStatus();
+        }, 100);
       });
       
       // 添加分页事件监听
@@ -695,40 +700,10 @@
         schoolMap.insertBefore(path, tempPath);
       });
 
-      // 更新所有区域的颜色状态
+      // 更新所有区域的颜色状态 - 使用统一的状态计算函数
       Object.keys(greenAreas).forEach(areaName => {
-        const areaData = greenAreas[areaName];
-        const lastWateredDate = new Date(areaData.lastWatered);
-        const now = new Date();
-        let nextWateringDate = new Date(lastWateredDate);
-        if (parseInt(areaData.wateringFrequency) > 0) {
-          const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-          const interval = Math.round(daysInMonth / parseInt(areaData.wateringFrequency));
-          nextWateringDate = new Date(lastWateredDate.getTime() + interval * 24 * 60 * 60 * 1000);
-        } else {
-          nextWateringDate = null;
-        }
-        let statusText;
-        if (parseInt(areaData.wateringFrequency) === 0) {
-          statusText = '正常';
-        } else {
-          const nextDateStr = nextWateringDate ? nextWateringDate.toISOString().split('T')[0] : null;
-          const todayStr = now.toISOString().split('T')[0];
-          
-          // 计算天数差
-          const today = new Date(todayStr);
-          const nextDate = nextDateStr ? new Date(nextDateStr) : null;
-          const daysDiff = nextDate ? Math.floor((nextDate - today) / (1000 * 60 * 60 * 24)) : 0;
-          
-          if (nextDateStr < todayStr) {
-            statusText = '已逾期';
-          } else if (daysDiff <= 3 && daysDiff >= -1) { // 前后3天内都算需要浇水
-            statusText = '需要浇水';
-          } else {
-            statusText = '正常';
-          }
-        }
-        console.log(`区域 ${areaName} 状态: ${statusText}, 浇水频率: ${areaData.wateringFrequency}, 上次浇水: ${areaData.lastWatered}`);
+        const statusText = calculateAreaStatus(areaName);
+        console.log(`区域 ${areaName} 状态: ${statusText}, 浇水频率: ${greenAreas[areaName].wateringFrequency}, 上次浇水: ${greenAreas[areaName].lastWatered}`);
         updateAreaColor(areaName, statusText);
       });
 
@@ -738,6 +713,86 @@
       } else if (Object.keys(greenAreas).length > 0) {
         selectArea(Object.keys(greenAreas)[0]);
       }
+    }
+
+    // 统一的状态计算函数
+    function calculateAreaStatus(areaName) {
+      const areaData = greenAreas[areaName];
+      if (!areaData) return '正常';
+      
+      const lastWateredDate = new Date(areaData.lastWatered);
+      const now = new Date();
+      
+      // 如果浇水频率为0，直接返回正常
+      if (parseInt(areaData.wateringFrequency) === 0) {
+        return '正常';
+      }
+      
+      // 计算下次浇水日期
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const interval = Math.round(daysInMonth / parseInt(areaData.wateringFrequency));
+      const nextWateringDate = new Date(lastWateredDate.getTime() + interval * 24 * 60 * 60 * 1000);
+      
+      // 只比较日期部分
+      const nextDateStr = nextWateringDate.toISOString().split('T')[0];
+      const todayStr = now.toISOString().split('T')[0];
+      
+      // 计算前一天和后一天的日期
+      const today = new Date(todayStr);
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      
+      if (nextDateStr < todayStr) {
+        return '已逾期';
+      } else if (nextDateStr === yesterdayStr || nextDateStr === todayStr || nextDateStr === tomorrowStr) {
+        // 前一天、今天、后一天都算作需要浇水
+        return '需要浇水';
+      } else {
+        return '正常';
+      }
+    }
+
+    // 强制刷新所有区域状态
+    function refreshAllAreaStatus() {
+      console.log('🔄 强制刷新所有区域状态...');
+      Object.keys(greenAreas).forEach(areaName => {
+        const statusText = calculateAreaStatus(areaName);
+        console.log(`区域 ${areaName} 状态刷新: ${statusText}`);
+        updateAreaColor(areaName, statusText);
+      });
+      console.log('✅ 所有区域状态刷新完成');
+    }
+
+    // 显示详细的状态计算信息
+    function showDetailedStatusInfo() {
+      console.log('=== 详细状态计算信息 ===');
+      Object.keys(greenAreas).forEach(areaName => {
+        const areaData = greenAreas[areaName];
+        const statusText = calculateAreaStatus(areaName);
+        
+        console.log(`\n区域: ${areaName}`);
+        console.log(`  上次浇水: ${areaData.lastWatered}`);
+        console.log(`  浇水频率: ${areaData.wateringFrequency} 次/月`);
+        console.log(`  计算状态: ${statusText}`);
+        
+        if (parseInt(areaData.wateringFrequency) > 0) {
+          const lastWateredDate = new Date(areaData.lastWatered);
+          const now = new Date();
+          const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+          const interval = Math.round(daysInMonth / parseInt(areaData.wateringFrequency));
+          const nextWateringDate = new Date(lastWateredDate.getTime() + interval * 24 * 60 * 60 * 1000);
+          
+          console.log(`  下次浇水日期: ${nextWateringDate.toISOString().split('T')[0]}`);
+          console.log(`  今天日期: ${now.toISOString().split('T')[0]}`);
+          console.log(`  间隔天数: ${interval} 天`);
+        }
+      });
+      console.log('=== 状态计算信息结束 ===');
     }
 
 
@@ -831,15 +886,24 @@
         nextWateringDate = null;
       }
       
-      // 更新状态显示
-      areaStatusEl.className = "text-sm font-medium";
+      // 使用统一的状态计算函数
+      const statusText = calculateAreaStatus(selectedArea);
       
-      let statusText;
+      // 更新状态显示
+      areaStatusEl.textContent = statusText;
+      areaStatusEl.className = 'text-sm font-medium';
+      if (statusText === '正常') {
+        areaStatusEl.classList.add('text-secondary');
+      } else if (statusText === '需要浇水') {
+        areaStatusEl.classList.add('text-warning');
+      } else {
+        areaStatusEl.classList.add('text-danger');
+      }
+      
+      // 更新下次浇水日期显示
       if (parseInt(areaData.wateringFrequency) === 0) {
         nextWateringEl.textContent = '无需浇水';
-        statusText = '正常';
       } else {
-        // 只比较日期部分
         const nextDateStr = nextWateringDate ? nextWateringDate.toISOString().split('T')[0] : null;
         const todayStr = now.toISOString().split('T')[0];
         
@@ -855,7 +919,6 @@
         
         if (nextDateStr < todayStr) {
           nextWateringEl.textContent = `${nextDateStr} (逾期)`;
-          statusText = '已逾期';
         } else if (nextDateStr === yesterdayStr || nextDateStr === todayStr || nextDateStr === tomorrowStr) {
           // 前一天、今天、后一天都算作需要浇水
           if (nextDateStr === yesterdayStr) {
@@ -865,21 +928,9 @@
           } else {
             nextWateringEl.textContent = `${nextDateStr} (明天)`;
           }
-          statusText = '需要浇水';
         } else {
           nextWateringEl.textContent = nextDateStr;
-          statusText = '正常';
         }
-      }
-      
-      areaStatusEl.textContent = statusText;
-      areaStatusEl.className = 'text-sm font-medium';
-      if (statusText === '正常') {
-        areaStatusEl.classList.add('text-secondary');
-      } else if (statusText === '需要浇水') {
-        areaStatusEl.classList.add('text-warning');
-      } else {
-        areaStatusEl.classList.add('text-danger');
       }
       
       // 更新地图区域颜色
@@ -1542,6 +1593,10 @@
           // 更新界面
           updateAreaButtons();
           updateCalendar();
+          // 强制刷新所有区域状态，确保颜色显示正确
+          setTimeout(() => {
+            refreshAllAreaStatus();
+          }, 100);
           alert('状态刷新成功！');
         } else {
           alert('❌ 刷新失败！请检查 green-area.json 文件是否存在且格式正确。');
@@ -1813,6 +1868,16 @@
       }
     });
 
+    // 页面可见性变化监听器 - 当用户切换回页面时自动刷新状态
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        console.log('🔄 页面重新可见，自动刷新区域状态...');
+        setTimeout(() => {
+          refreshAllAreaStatus();
+        }, 200);
+      }
+    });
+
     // 页面卸载前保存数据
     window.addEventListener('beforeunload', () => {
       saveData();
@@ -1822,6 +1887,12 @@
     setInterval(() => {
       saveData();
     }, 10000);
+    
+    // 定期检查区域状态（每30秒）
+    setInterval(() => {
+      console.log('🔄 定期检查区域状态...');
+      refreshAllAreaStatus();
+    }, 30000);
     
     // 添加调试快捷键
     document.addEventListener('keydown', (e) => {
@@ -1858,6 +1929,20 @@
         e.preventDefault();
         saveData();
         alert('数据已手动保存');
+      }
+      
+      // Ctrl+Shift+R: 手动刷新所有区域状态
+      if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+        e.preventDefault();
+        refreshAllAreaStatus();
+        alert('所有区域状态已手动刷新');
+      }
+      
+      // Ctrl+Shift+I: 显示详细状态信息
+      if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+        showDetailedStatusInfo();
+        alert('详细状态信息已输出到控制台，按F12查看');
       }
     });
     
